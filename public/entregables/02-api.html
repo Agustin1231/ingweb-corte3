@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Entregable Fase 2 — Contrato detallado de la API REST del Sistema de Gestión de Citas Médicas." />
+  <title>Fase 2 · Contrato de la API · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav" aria-label="Navegación principal">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#proposito">Propósito</a></li>
+            <li><a href="#principios">Principios y convenciones</a></li>
+            <li><a href="#auth-flow">Autenticación</a></li>
+            <li><a href="#errores">Errores estándar</a></li>
+            <li><a href="#mapa">Mapa de la API</a></li>
+            <li><a href="#ep-auth">Endpoints · Auth</a></li>
+            <li><a href="#ep-disp">Endpoints · Disponibilidad</a></li>
+            <li><a href="#ep-citas">Endpoints · Citas</a></li>
+            <li><a href="#ep-admin">Endpoints · Admin</a></li>
+            <li><a href="#modelos">Modelos de datos</a></li>
+            <li><a href="#versionado">Versionado</a></li>
+            <li><a href="#seguridad">Seguridad</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Fase 2</span> <span class="tag green">Entregable</span></p>
+          <h1>Contrato de la API</h1>
+          <div class="doc-meta">
+            Conceptos: API · REST · JSON · HTTPS · Autenticación · Versionado ·
+            Versión 1.0 · Última revisión 2026-05-05
+          </div>
+
+          <!-- 1 -->
+          <h2 id="proposito">1. Propósito</h2>
+          <p>
+            Este documento define el <strong>contrato técnico</strong> entre el frontend y el
+            backend del sistema. Establece <em>qué</em> recursos expone la API, <em>cómo</em>
+            se invocan, qué datos intercambian y qué respuestas devuelven. Es la traducción
+            operativa de la <a href="./01-arquitectura.html">arquitectura</a>.
+          </p>
+          <blockquote>
+            Una API bien especificada permite que frontend y backend evolucionen en paralelo
+            sin romperse mutuamente, y habilita pruebas automatizadas desde el inicio.
+          </blockquote>
+
+          <!-- 2 -->
+          <h2 id="principios">2. Principios y convenciones</h2>
+          <table>
+            <thead><tr><th>Principio</th><th>Aplicación concreta</th></tr></thead>
+            <tbody>
+              <tr><td>Estilo arquitectónico</td><td><strong>REST</strong> — recursos identificables por URL, verbos HTTP semánticos.</td></tr>
+              <tr><td>Formato de intercambio</td><td><strong>JSON</strong> con codificación UTF-8.</td></tr>
+              <tr><td>Transporte</td><td><strong>HTTPS</strong> obligatorio (TLS 1.2+).</td></tr>
+              <tr><td>Sin estado</td><td>Cada request es independiente; el estado vive en el cliente (token).</td></tr>
+              <tr><td>Idempotencia</td><td><code>GET</code>, <code>PUT</code> y <code>DELETE</code> son idempotentes; <code>POST</code> crea recursos.</td></tr>
+              <tr><td>Versionado</td><td>Prefijo de versión en la URL: <code>/api/v1/...</code> (ver §11).</td></tr>
+              <tr><td>Paginación</td><td>Listados grandes usan <code>?page=&amp;limit=</code> con metadatos de paginación.</td></tr>
+              <tr><td>Identificadores</td><td>UUID o entero positivo; nunca exponer información sensible en el ID.</td></tr>
+              <tr><td>Fechas</td><td>ISO 8601 en UTC (<code>2026-05-15T14:30:00Z</code>).</td></tr>
+              <tr><td>Naming</td><td>Recursos en plural y minúscula (<code>/citas</code>, <code>/medicos</code>).</td></tr>
+            </tbody>
+          </table>
+
+          <h3>2.1 Headers comunes</h3>
+          <table>
+            <thead><tr><th>Header</th><th>Uso</th></tr></thead>
+            <tbody>
+              <tr><td><code>Content-Type: application/json</code></td><td>En todo request con body.</td></tr>
+              <tr><td><code>Accept: application/json</code></td><td>Recomendado en todo request.</td></tr>
+              <tr><td><code>Authorization: Bearer &lt;token&gt;</code></td><td>En endpoints autenticados.</td></tr>
+            </tbody>
+          </table>
+
+          <!-- 3 -->
+          <h2 id="auth-flow">3. Autenticación</h2>
+          <p>
+            La API usa autenticación basada en <strong>token Bearer</strong> emitido al
+            iniciar sesión. El token debe enviarse en cada request a endpoints protegidos
+            mediante el header <code>Authorization</code>.
+          </p>
+
+          <svg class="svg-diagram" viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flujo de autenticación con token Bearer">
+            <defs>
+              <linearGradient id="afHead" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1565d8"/><stop offset="100%" stop-color="#0a3270"/>
+              </linearGradient>
+              <marker id="afArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#1e3a8a"/>
+              </marker>
+              <marker id="afArrowReturn" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
+              </marker>
+              <filter id="afShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.16"/>
+              </filter>
+            </defs>
+            <style>
+              .af-actor{fill:url(#afHead);stroke:#0a3270;stroke-width:1.5}
+              .af-actor-text{fill:#fff;font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .af-life{stroke:#94a3b8;stroke-width:1;stroke-dasharray:4 4}
+              .af-msg{stroke:#1e3a8a;stroke-width:1.8;fill:none}
+              .af-msg-r{stroke:#0f766e;stroke-width:1.5;fill:none;stroke-dasharray:6 3}
+              .af-label{font:600 11px -apple-system,"Segoe UI",sans-serif;fill:#1e293b;text-anchor:middle}
+              .af-label-r{font:11px -apple-system,"Segoe UI",sans-serif;fill:#0f766e;text-anchor:middle;font-style:italic}
+              .af-num{font:700 10px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .af-token{fill:#fef3c7;stroke:#d97706;stroke-width:1.2}
+              .af-token-text{font:700 11px "SF Mono",Consolas,monospace;fill:#92400e;text-anchor:middle}
+            </style>
+            <rect width="900" height="480" rx="12" fill="#f8fafc"/>
+            <line class="af-life" x1="180" y1="80" x2="180" y2="450"/>
+            <line class="af-life" x1="700" y1="80" x2="700" y2="450"/>
+            <g filter="url(#afShadow)"><rect class="af-actor" x="100" y="35" width="160" height="44" rx="8"/><text class="af-actor-text" x="180" y="62">CLIENTE</text></g>
+            <g filter="url(#afShadow)"><rect class="af-actor" x="620" y="35" width="160" height="44" rx="8"/><text class="af-actor-text" x="700" y="62">API · BACKEND</text></g>
+
+            <path class="af-msg" d="M 180,130 L 695,130" marker-end="url(#afArrow)"/>
+            <text class="af-num" x="438" y="120" fill="#1e3a8a">1</text>
+            <text class="af-label" x="438" y="146">POST /auth/login · {email, password}</text>
+
+            <text x="710" y="170" font="11px -apple-system,'Segoe UI',sans-serif" fill="#475569" font-style="italic">verifica credenciales</text>
+            <text x="710" y="186" font="11px -apple-system,'Segoe UI',sans-serif" fill="#475569" font-style="italic">compara hash + salt</text>
+
+            <path class="af-msg-r" d="M 695,220 L 185,220" marker-end="url(#afArrowReturn)"/>
+            <text class="af-num" x="438" y="210" fill="#0f766e">2</text>
+            <text class="af-label-r" x="438" y="236">200 OK · { token, expiresIn, user }</text>
+
+            <rect class="af-token" x="60" y="260" width="240" height="44" rx="8"/>
+            <text class="af-token-text" x="180" y="280">Token guardado en cliente</text>
+            <text x="180" y="296" font="10px -apple-system,'Segoe UI',sans-serif" fill="#92400e" text-anchor="middle">localStorage / memoria · expira en N min</text>
+
+            <path class="af-msg" d="M 180,350 L 695,350" marker-end="url(#afArrow)"/>
+            <text class="af-num" x="438" y="340" fill="#1e3a8a">3</text>
+            <text class="af-label" x="438" y="366">GET /citas · Authorization: Bearer &lt;token&gt;</text>
+
+            <text x="710" y="390" font="11px -apple-system,'Segoe UI',sans-serif" fill="#475569" font-style="italic">valida firma y expiración</text>
+
+            <path class="af-msg-r" d="M 695,420 L 185,420" marker-end="url(#afArrowReturn)"/>
+            <text class="af-num" x="438" y="410" fill="#0f766e">4</text>
+            <text class="af-label-r" x="438" y="436">200 OK · datos del usuario autenticado</text>
+          </svg>
+          <span class="svg-caption">Figura 1. Flujo de autenticación con token Bearer.</span>
+
+          <h3>3.1 Roles del sistema</h3>
+          <table>
+            <thead><tr><th>Rol</th><th>Permisos</th></tr></thead>
+            <tbody>
+              <tr><td><code>paciente</code></td><td>Gestionar sus propias citas y perfil.</td></tr>
+              <tr><td><code>staff</code></td><td>Ver y gestionar citas de la clínica, registrar médicos y horarios.</td></tr>
+              <tr><td><code>admin</code></td><td>Acceso total + gestión de usuarios y reportes.</td></tr>
+            </tbody>
+          </table>
+
+          <!-- 4 -->
+          <h2 id="errores">4. Errores estándar</h2>
+          <h3>4.1 Códigos HTTP</h3>
+          <table>
+            <thead><tr><th>Código</th><th>Significado</th><th>Cuándo se usa</th></tr></thead>
+            <tbody>
+              <tr><td><code>200 OK</code></td><td>Éxito con cuerpo</td><td>GET, DELETE con respuesta.</td></tr>
+              <tr><td><code>201 Created</code></td><td>Recurso creado</td><td>POST exitoso.</td></tr>
+              <tr><td><code>204 No Content</code></td><td>Éxito sin cuerpo</td><td>DELETE sin retorno.</td></tr>
+              <tr><td><code>400 Bad Request</code></td><td>Datos inválidos</td><td>Validación de schema fallida.</td></tr>
+              <tr><td><code>401 Unauthorized</code></td><td>Falta token o inválido</td><td>Endpoint protegido sin auth.</td></tr>
+              <tr><td><code>403 Forbidden</code></td><td>Sin permisos</td><td>Autenticado pero rol insuficiente.</td></tr>
+              <tr><td><code>404 Not Found</code></td><td>Recurso inexistente</td><td>ID no encontrado.</td></tr>
+              <tr><td><code>409 Conflict</code></td><td>Conflicto de estado</td><td>Doble booking, email duplicado.</td></tr>
+              <tr><td><code>422 Unprocessable</code></td><td>Reglas de negocio</td><td>Fecha pasada, formato válido pero inválido contextualmente.</td></tr>
+              <tr><td><code>500 Server Error</code></td><td>Error no controlado</td><td>Bug; nunca debe filtrar internals.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>4.2 Esquema uniforme de error</h3>
+          <p>Todas las respuestas de error siguen exactamente esta estructura:</p>
+<pre><code>{
+  "error": {
+    "codigo": "CITA_DUPLICADA",
+    "mensaje": "Ya existe una cita en ese horario para el médico seleccionado",
+    "detalles": {
+      "medico_id": 12,
+      "fecha_hora": "2026-05-15T14:30:00Z"
+    }
+  }
+}</code></pre>
+
+          <table>
+            <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+            <tbody>
+              <tr><td><code>codigo</code></td><td>Identificador estable, mayúsculas con underscore. Permite manejo programático.</td></tr>
+              <tr><td><code>mensaje</code></td><td>Texto humano en español, seguro para mostrar al usuario.</td></tr>
+              <tr><td><code>detalles</code></td><td>Objeto opcional con contexto adicional. Nunca incluye stacktraces ni datos sensibles.</td></tr>
+            </tbody>
+          </table>
+
+          <!-- 5 -->
+          <h2 id="mapa">5. Mapa de la API</h2>
+          <p>Los endpoints se agrupan por módulo según la <a href="./01-arquitectura.html#modulos">modularización arquitectónica</a>:</p>
+
+          <svg class="svg-diagram" viewBox="0 0 920 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de la API por módulos">
+            <defs>
+              <linearGradient id="apiCenter" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1565d8"/><stop offset="100%" stop-color="#0a3270"/>
+              </linearGradient>
+              <filter id="apiShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+              </filter>
+            </defs>
+            <style>
+              .api-mod{stroke-width:1.6;rx:12}
+              .api-mod-title{font:700 14px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .api-ep{font:12px "SF Mono",Consolas,monospace}
+              .api-ep-method{font:700 10px "SF Mono",Consolas,monospace;text-anchor:end}
+              .api-line{stroke:#94a3b8;stroke-width:1.5;fill:none}
+              .api-center-text{fill:#fff;font:700 16px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .api-center-sub{fill:#cbd5e1;font:11px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;letter-spacing:.1em}
+            </style>
+            <rect width="920" height="520" rx="12" fill="#f8fafc"/>
+
+            <!-- Center: API base -->
+            <g filter="url(#apiShadow)">
+              <rect x="380" y="220" width="160" height="80" rx="14" fill="url(#apiCenter)" stroke="#0a3270" stroke-width="2"/>
+              <text class="api-center-text" x="460" y="252">/api/v1</text>
+              <text class="api-center-sub" y="278" x="460">REST · JSON</text>
+            </g>
+
+            <!-- Lines to modules -->
+            <path class="api-line" d="M 380,240 Q 280,160 200,140"/>
+            <path class="api-line" d="M 540,240 Q 640,160 720,140"/>
+            <path class="api-line" d="M 380,280 Q 280,360 200,400"/>
+            <path class="api-line" d="M 540,280 Q 640,360 720,400"/>
+
+            <!-- Module: Auth (top-left) -->
+            <g filter="url(#apiShadow)">
+              <rect class="api-mod" x="40" y="50" width="320" height="160" fill="#fff" stroke="#1d4ed8"/>
+              <rect x="40" y="50" width="320" height="34" rx="12" fill="#dbeafe"/>
+              <rect x="40" y="68" width="320" height="16" fill="#dbeafe"/>
+              <text class="api-mod-title" x="200" y="73" fill="#1e3a8a">AUTH · USUARIOS</text>
+              <text class="api-ep-method" x="92" y="110" fill="#1d4ed8">POST</text>
+              <text class="api-ep" x="100" y="110" fill="#0f172a">/auth/register</text>
+              <text class="api-ep-method" x="92" y="132" fill="#1d4ed8">POST</text>
+              <text class="api-ep" x="100" y="132" fill="#0f172a">/auth/login</text>
+              <text class="api-ep-method" x="92" y="154" fill="#15803d">GET</text>
+              <text class="api-ep" x="100" y="154" fill="#0f172a">/usuarios/me</text>
+              <text class="api-ep-method" x="92" y="176" fill="#b45309">PATCH</text>
+              <text class="api-ep" x="100" y="176" fill="#0f172a">/usuarios/me</text>
+            </g>
+
+            <!-- Module: Disponibilidad (top-right) -->
+            <g filter="url(#apiShadow)">
+              <rect class="api-mod" x="560" y="50" width="320" height="160" fill="#fff" stroke="#0f766e"/>
+              <rect x="560" y="50" width="320" height="34" rx="12" fill="#ccfbf1"/>
+              <rect x="560" y="68" width="320" height="16" fill="#ccfbf1"/>
+              <text class="api-mod-title" x="720" y="73" fill="#0f766e">DISPONIBILIDAD · MÉDICOS</text>
+              <text class="api-ep-method" x="612" y="110" fill="#15803d">GET</text>
+              <text class="api-ep" x="620" y="110" fill="#0f172a">/disponibilidad</text>
+              <text class="api-ep-method" x="612" y="132" fill="#15803d">GET</text>
+              <text class="api-ep" x="620" y="132" fill="#0f172a">/medicos</text>
+              <text class="api-ep-method" x="612" y="154" fill="#15803d">GET</text>
+              <text class="api-ep" x="620" y="154" fill="#0f172a">/medicos/:id</text>
+            </g>
+
+            <!-- Module: Citas (bottom-left) -->
+            <g filter="url(#apiShadow)">
+              <rect class="api-mod" x="40" y="320" width="320" height="180" fill="#fff" stroke="#c2410c"/>
+              <rect x="40" y="320" width="320" height="34" rx="12" fill="#ffedd5"/>
+              <rect x="40" y="338" width="320" height="16" fill="#ffedd5"/>
+              <text class="api-mod-title" x="200" y="343" fill="#c2410c">CITAS</text>
+              <text class="api-ep-method" x="92" y="380" fill="#1d4ed8">POST</text>
+              <text class="api-ep" x="100" y="380" fill="#0f172a">/citas</text>
+              <text class="api-ep-method" x="92" y="402" fill="#15803d">GET</text>
+              <text class="api-ep" x="100" y="402" fill="#0f172a">/citas</text>
+              <text class="api-ep-method" x="92" y="424" fill="#15803d">GET</text>
+              <text class="api-ep" x="100" y="424" fill="#0f172a">/citas/:id</text>
+              <text class="api-ep-method" x="92" y="446" fill="#b91c1c">DELETE</text>
+              <text class="api-ep" x="100" y="446" fill="#0f172a">/citas/:id</text>
+            </g>
+
+            <!-- Module: Admin (bottom-right) -->
+            <g filter="url(#apiShadow)">
+              <rect class="api-mod" x="560" y="320" width="320" height="180" fill="#fff" stroke="#991b1b"/>
+              <rect x="560" y="320" width="320" height="34" rx="12" fill="#fee2e2"/>
+              <rect x="560" y="338" width="320" height="16" fill="#fee2e2"/>
+              <text class="api-mod-title" x="720" y="343" fill="#991b1b">ADMINISTRATIVO</text>
+              <text class="api-ep-method" x="612" y="380" fill="#15803d">GET</text>
+              <text class="api-ep" x="620" y="380" fill="#0f172a">/admin/citas</text>
+              <text class="api-ep-method" x="612" y="402" fill="#1d4ed8">POST</text>
+              <text class="api-ep" x="620" y="402" fill="#0f172a">/admin/medicos</text>
+              <text class="api-ep-method" x="612" y="424" fill="#1d4ed8">POST</text>
+              <text class="api-ep" x="620" y="424" fill="#0f172a">/admin/horarios</text>
+              <text class="api-ep-method" x="612" y="446" fill="#15803d">GET</text>
+              <text class="api-ep" x="620" y="446" fill="#0f172a">/admin/reportes</text>
+            </g>
+          </svg>
+          <span class="svg-caption">Figura 2. Mapa de endpoints organizados por módulo arquitectónico.</span>
+
+          <p>Pasarela rápida por método:</p>
+          <div class="method-index">
+            <a href="#ep-auth"><span class="method method-post">POST</span> Auth</a>
+            <a href="#ep-disp"><span class="method method-get">GET</span> Disponibilidad</a>
+            <a href="#ep-citas"><span class="method method-post">POST</span> Citas</a>
+            <a href="#ep-citas"><span class="method method-delete">DELETE</span> Citas</a>
+            <a href="#ep-admin"><span class="method method-get">GET</span> Admin</a>
+          </div>
+
+          <!-- 6 -->
+          <h2 id="ep-auth">6. Endpoints · Autenticación y Usuarios</h2>
+
+          <div class="endpoint method-card-post">
+            <div class="endpoint-head">
+              <span class="method method-post">POST</span>
+              <span class="endpoint-path">/api/v1/auth/register</span>
+              <span class="auth-tag public">Público</span>
+            </div>
+            <p class="endpoint-desc">Crea una cuenta de paciente. Realiza hash de la contraseña con salt antes de persistir.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Request body</h5>
+<pre><code>{
+  "nombre": "Ana Pérez",
+  "email": "ana@example.com",
+  "password": "MiClav3Segura!"
+}</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 201</h5>
+<pre><code>{
+  "id": "u_8c1d3f",
+  "nombre": "Ana Pérez",
+  "email": "ana@example.com",
+  "rol": "paciente",
+  "creado_en": "2026-05-05T18:42:00Z"
+}</code></pre>
+              </div>
+            </div>
+            <div class="endpoint-errors">
+              <h5>Errores</h5>
+              <table>
+                <thead><tr><th>Código</th><th>Causa</th></tr></thead>
+                <tbody>
+                  <tr><td><code class="code-err">400</code> EMAIL_INVALIDO</td><td>Formato de email no válido.</td></tr>
+                  <tr><td><code class="code-err">400</code> PASSWORD_DEBIL</td><td>No cumple política mínima.</td></tr>
+                  <tr><td><code class="code-err">409</code> EMAIL_DUPLICADO</td><td>Ya existe una cuenta con ese email.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-post">
+            <div class="endpoint-head">
+              <span class="method method-post">POST</span>
+              <span class="endpoint-path">/api/v1/auth/login</span>
+              <span class="auth-tag public">Público</span>
+            </div>
+            <p class="endpoint-desc">Autentica al usuario y devuelve un token Bearer.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Request body</h5>
+<pre><code>{
+  "email": "ana@example.com",
+  "password": "MiClav3Segura!"
+}</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{
+  "token": "eyJhbGciOi...",
+  "expiresIn": 3600,
+  "user": {
+    "id": "u_8c1d3f",
+    "nombre": "Ana Pérez",
+    "rol": "paciente"
+  }
+}</code></pre>
+              </div>
+            </div>
+            <div class="endpoint-errors">
+              <h5>Errores</h5>
+              <table>
+                <thead><tr><th>Código</th><th>Causa</th></tr></thead>
+                <tbody>
+                  <tr><td><code class="code-err">401</code> CREDENCIALES_INVALIDAS</td><td>Mensaje genérico — no diferencia "email no existe" de "password incorrecto" para evitar enumeración.</td></tr>
+                  <tr><td><code class="code-err">429</code> DEMASIADOS_INTENTOS</td><td>Rate limit por IP/email superado.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/usuarios/me</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Devuelve el perfil del usuario autenticado.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Headers</h5>
+<pre><code>Authorization: Bearer &lt;token&gt;</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{
+  "id": "u_8c1d3f",
+  "nombre": "Ana Pérez",
+  "email": "ana@example.com",
+  "rol": "paciente",
+  "creado_en": "2026-05-05T18:42:00Z"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7 -->
+          <h2 id="ep-disp">7. Endpoints · Disponibilidad y Médicos</h2>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/disponibilidad</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Devuelve los horarios libres de un médico para una fecha dada.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Query params</h5>
+<pre><code>?medico_id=m_42
+&amp;fecha=2026-05-15</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{
+  "medico_id": "m_42",
+  "fecha": "2026-05-15",
+  "slots": [
+    "08:00", "08:30", "09:00",
+    "10:30", "11:00"
+  ]
+}</code></pre>
+              </div>
+            </div>
+            <div class="endpoint-errors">
+              <h5>Errores</h5>
+              <table>
+                <thead><tr><th>Código</th><th>Causa</th></tr></thead>
+                <tbody>
+                  <tr><td><code class="code-err">400</code> FECHA_INVALIDA</td><td>Formato fecha incorrecto.</td></tr>
+                  <tr><td><code class="code-err">404</code> MEDICO_NO_ENCONTRADO</td><td>El médico no existe o está inactivo.</td></tr>
+                  <tr><td><code class="code-err">422</code> FECHA_PASADA</td><td>La fecha consultada ya pasó.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/medicos</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Lista los médicos activos, opcionalmente filtrados por especialidad.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Query params</h5>
+<pre><code>?especialidad=cardiologia
+&amp;page=1&amp;limit=20</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{
+  "data": [
+    { "id": "m_42", "nombre": "Dr. López",
+      "especialidad": "cardiologia" }
+  ],
+  "page": 1, "limit": 20, "total": 8
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8 -->
+          <h2 id="ep-citas">8. Endpoints · Citas</h2>
+
+          <div class="endpoint method-card-post">
+            <div class="endpoint-head">
+              <span class="method method-post">POST</span>
+              <span class="endpoint-path">/api/v1/citas</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Agenda una nueva cita para el usuario autenticado. Valida disponibilidad atómicamente.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Request body</h5>
+<pre><code>{
+  "medico_id": "m_42",
+  "fecha_hora": "2026-05-15T09:00:00Z",
+  "motivo": "Control anual"
+}</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 201</h5>
+<pre><code>{
+  "id": "c_a93f2b",
+  "usuario_id": "u_8c1d3f",
+  "medico_id": "m_42",
+  "fecha_hora": "2026-05-15T09:00:00Z",
+  "estado": "agendada",
+  "creado_en": "2026-05-05T19:00:00Z"
+}</code></pre>
+              </div>
+            </div>
+            <div class="endpoint-errors">
+              <h5>Errores</h5>
+              <table>
+                <thead><tr><th>Código</th><th>Causa</th></tr></thead>
+                <tbody>
+                  <tr><td><code class="code-err">409</code> CITA_DUPLICADA</td><td>Ya existe una cita en ese horario para el médico.</td></tr>
+                  <tr><td><code class="code-err">422</code> FECHA_PASADA</td><td>No se puede agendar en el pasado.</td></tr>
+                  <tr><td><code class="code-err">422</code> FUERA_DE_HORARIO</td><td>El médico no atiende en ese horario.</td></tr>
+                  <tr><td><code class="code-err">404</code> MEDICO_NO_ENCONTRADO</td><td>El médico referenciado no existe.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/citas</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Lista las citas del usuario autenticado, ordenadas por fecha descendente.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Query params</h5>
+<pre><code>?estado=agendada
+&amp;desde=2026-05-01
+&amp;page=1&amp;limit=10</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{
+  "data": [
+    { "id": "c_a93f2b",
+      "medico": { "id":"m_42","nombre":"Dr. López" },
+      "fecha_hora": "2026-05-15T09:00:00Z",
+      "estado": "agendada" }
+  ],
+  "page": 1, "limit": 10, "total": 1
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/citas/:id</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Detalle de una cita propia. Devuelve 403 si no pertenece al usuario (excepto staff/admin).</p>
+            <div class="endpoint-errors">
+              <h5>Errores</h5>
+              <table>
+                <thead><tr><th>Código</th><th>Causa</th></tr></thead>
+                <tbody>
+                  <tr><td><code class="code-err">403</code> NO_AUTORIZADO</td><td>La cita no pertenece al usuario.</td></tr>
+                  <tr><td><code class="code-err">404</code> CITA_NO_ENCONTRADA</td><td>El ID no existe.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-delete">
+            <div class="endpoint-head">
+              <span class="method method-delete">DELETE</span>
+              <span class="endpoint-path">/api/v1/citas/:id</span>
+              <span class="auth-tag">Requiere token</span>
+            </div>
+            <p class="endpoint-desc">Cancela una cita propia. Cambia el estado a <code>cancelada</code> en lugar de eliminar físicamente (auditoría).</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{
+  "id": "c_a93f2b",
+  "estado": "cancelada",
+  "cancelada_en": "2026-05-06T10:15:00Z"
+}</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Notas</h5>
+                <ul style="font-size:13px;color:var(--color-text-soft);margin:0;padding-left:18px">
+                  <li>Solo se puede cancelar con &gt; 1h de anticipación.</li>
+                  <li>El registro permanece para auditoría.</li>
+                  <li>Solo el dueño o un staff/admin puede cancelar.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9 -->
+          <h2 id="ep-admin">9. Endpoints · Administrativo</h2>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/admin/citas</span>
+              <span class="auth-tag admin">Admin / Staff</span>
+            </div>
+            <p class="endpoint-desc">Lista todas las citas del sistema con filtros avanzados.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Query params</h5>
+<pre><code>?medico_id=m_42
+&amp;estado=agendada
+&amp;desde=2026-05-01
+&amp;hasta=2026-05-31
+&amp;page=1&amp;limit=50</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 200</h5>
+<pre><code>{ "data": [...], "page": 1,
+  "limit": 50, "total": 142 }</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-post">
+            <div class="endpoint-head">
+              <span class="method method-post">POST</span>
+              <span class="endpoint-path">/api/v1/admin/medicos</span>
+              <span class="auth-tag admin">Admin</span>
+            </div>
+            <p class="endpoint-desc">Da de alta un nuevo médico.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Request body</h5>
+<pre><code>{
+  "nombre": "Dra. Martínez",
+  "especialidad": "pediatria",
+  "activo": true
+}</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 201</h5>
+<pre><code>{
+  "id": "m_57",
+  "nombre": "Dra. Martínez",
+  "especialidad": "pediatria",
+  "activo": true
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-post">
+            <div class="endpoint-head">
+              <span class="method method-post">POST</span>
+              <span class="endpoint-path">/api/v1/admin/horarios</span>
+              <span class="auth-tag admin">Admin / Staff</span>
+            </div>
+            <p class="endpoint-desc">Define el horario semanal de atención de un médico.</p>
+            <div class="endpoint-grid">
+              <div class="endpoint-block">
+                <h5>Request body</h5>
+<pre><code>{
+  "medico_id": "m_42",
+  "dia_semana": "lunes",
+  "hora_inicio": "08:00",
+  "hora_fin": "12:00"
+}</code></pre>
+              </div>
+              <div class="endpoint-block">
+                <h5>Response 201</h5>
+<pre><code>{
+  "id": "h_19",
+  "medico_id": "m_42",
+  "dia_semana": "lunes",
+  "hora_inicio": "08:00",
+  "hora_fin": "12:00"
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint method-card-get">
+            <div class="endpoint-head">
+              <span class="method method-get">GET</span>
+              <span class="endpoint-path">/api/v1/admin/reportes</span>
+              <span class="auth-tag admin">Admin</span>
+            </div>
+            <p class="endpoint-desc">Métricas operativas: ocupación, cancelaciones, citas por especialidad.</p>
+            <div class="endpoint-block">
+              <h5>Response 200</h5>
+<pre><code>{
+  "periodo": { "desde":"2026-05-01", "hasta":"2026-05-31" },
+  "totales": {
+    "agendadas": 142,
+    "atendidas": 118,
+    "canceladas": 16,
+    "no_show": 8
+  },
+  "por_especialidad": {
+    "cardiologia": 42,
+    "pediatria": 38,
+    "general": 62
+  },
+  "ocupacion_promedio": 0.78
+}</code></pre>
+            </div>
+          </div>
+
+          <!-- 10 -->
+          <h2 id="modelos">10. Modelos de datos (DTOs)</h2>
+          <p>Resumen de los esquemas usados en requests y responses. Coincide con el modelo conceptual de la <a href="./01-arquitectura.html#vistas">Fase 1</a>.</p>
+
+          <h3>10.1 Usuario</h3>
+<pre><code>{
+  "id": "string (uuid o slug)",
+  "nombre": "string (1..120)",
+  "email": "string (email, único)",
+  "rol": "paciente | staff | admin",
+  "creado_en": "string (ISO 8601 UTC)"
+}</code></pre>
+          <blockquote><strong>password_hash</strong> es interno, jamás se expone en respuestas.</blockquote>
+
+          <h3>10.2 Cita</h3>
+<pre><code>{
+  "id": "string",
+  "usuario_id": "string",
+  "medico_id": "string",
+  "fecha_hora": "string (ISO 8601 UTC)",
+  "estado": "agendada | confirmada | cancelada | atendida",
+  "motivo": "string (opcional, 0..500)",
+  "creado_en": "string",
+  "cancelada_en": "string (opcional)"
+}</code></pre>
+
+          <h3>10.3 Médico</h3>
+<pre><code>{
+  "id": "string",
+  "nombre": "string",
+  "especialidad": "string",
+  "activo": "boolean"
+}</code></pre>
+
+          <h3>10.4 Horario</h3>
+<pre><code>{
+  "id": "string",
+  "medico_id": "string",
+  "dia_semana": "lunes..domingo",
+  "hora_inicio": "HH:mm",
+  "hora_fin": "HH:mm"
+}</code></pre>
+
+          <h3>10.5 Paginación (envoltorio común)</h3>
+<pre><code>{
+  "data": [ ...recursos ],
+  "page": 1,
+  "limit": 20,
+  "total": 142
+}</code></pre>
+
+          <!-- 11 -->
+          <h2 id="versionado">11. Versionado de la API</h2>
+          <table>
+            <thead><tr><th>Aspecto</th><th>Política</th></tr></thead>
+            <tbody>
+              <tr><td>Versión actual</td><td><code>v1</code> (prefijo de URL <code>/api/v1</code>)</td></tr>
+              <tr><td>Cambios menores</td><td>Adicionales y compatibles hacia atrás → no incrementan versión.</td></tr>
+              <tr><td>Cambios mayores</td><td>Cualquier ruptura de contrato → nueva versión <code>v2</code> en paralelo.</td></tr>
+              <tr><td>Deprecación</td><td>Header <code>Deprecation</code> + plazo mínimo de 90 días antes de retirar.</td></tr>
+              <tr><td>Documentación</td><td>Este documento se versiona junto con el código en Git.</td></tr>
+            </tbody>
+          </table>
+
+          <!-- 12 -->
+          <h2 id="seguridad">12. Notas de seguridad</h2>
+          <p>Resumen de decisiones que se profundizan en <a href="../index.html#entregables">Fase 5 — Seguridad</a>:</p>
+          <ul>
+            <li><strong>HTTPS obligatorio</strong> en todos los entornos.</li>
+            <li><strong>Hash + salt</strong> de contraseñas; jamás en texto plano ni reversible.</li>
+            <li><strong>Validación autoritativa</strong> en servidor, incluso si el cliente ya validó.</li>
+            <li><strong>Mensajes de error genéricos</strong> en login/registro para evitar enumeración de usuarios.</li>
+            <li><strong>Rate limiting</strong> en endpoints sensibles (login, register).</li>
+            <li><strong>Control de acceso por rol</strong> verificado en cada endpoint.</li>
+            <li><strong>Sin filtración de internals</strong> en respuestas de error 500.</li>
+            <li><strong>Auditoría</strong> de operaciones críticas (alta/baja de médicos, cancelaciones administrativas).</li>
+          </ul>
+
+          <div class="callout">
+            <div>
+              <strong>Siguiente entregable:</strong>
+              <a href="./03-scrum.html">Fase 2 — Scrum y control de versiones</a>:
+              roles, sprints, historias de usuario y estrategia Git.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

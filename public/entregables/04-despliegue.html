@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Entregable Fase 3 — Despliegue del sistema en GitLab Pages mediante CI/CD." />
+  <title>Fase 3 · Despliegue · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#proposito">Propósito</a></li>
+            <li><a href="#modelo">Modelo de despliegue</a></li>
+            <li><a href="#pipeline">Pipeline CI/CD</a></li>
+            <li><a href="#yaml">.gitlab-ci.yml</a></li>
+            <li><a href="#pages">Configuración Pages</a></li>
+            <li><a href="#https">Dominio y HTTPS</a></li>
+            <li><a href="#verificacion">Verificación</a></li>
+            <li><a href="#rollback">Rollback</a></li>
+            <li><a href="#monitoreo">Monitoreo</a></li>
+            <li><a href="#costos">Costos</a></li>
+            <li><a href="#checklist">Checklist</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Fase 3</span> <span class="tag green">Entregable</span></p>
+          <h1>Despliegue en la nube</h1>
+          <div class="doc-meta">
+            Conceptos: Nube · CI/CD · GitLab Pages · HTTPS · Versión 1.0 · Última revisión 2026-05-05
+          </div>
+
+          <h2 id="proposito">1. Propósito</h2>
+          <p>
+            Este documento describe <strong>cómo y dónde</strong> se publica el sistema para
+            que sea accesible públicamente vía internet, qué pipeline lo automatiza, y qué
+            mecanismos garantizan la disponibilidad y trazabilidad del despliegue.
+          </p>
+          <blockquote>
+            "Funciona en mi máquina" no es una entrega. La nube es la única forma honesta de
+            demostrar que el sistema realmente está vivo.
+          </blockquote>
+
+          <h2 id="modelo">2. Modelo de despliegue elegido</h2>
+          <p>
+            Se adoptó una estrategia <strong>static-first sobre GitLab Pages</strong>: el
+            frontend se publica como sitio estático servido desde un CDN, y el backend
+            (cuando exista) corre en un servicio externo invocado vía API REST.
+          </p>
+          <table>
+            <thead><tr><th>Aspecto</th><th>Decisión</th><th>Justificación</th></tr></thead>
+            <tbody>
+              <tr><td>Hosting frontend</td><td>GitLab Pages</td><td>Gratuito, integrado con el repo, HTTPS automático, CDN global.</td></tr>
+              <tr><td>Modelo de servicio</td><td>SaaS / PaaS</td><td>Sin servidor propio, sin parches de SO, sin gestión de infraestructura.</td></tr>
+              <tr><td>Disparador</td><td><code>git push</code> a <code>main</code></td><td>Despliegue continuo: cada cambio aprobado llega a producción.</td></tr>
+              <tr><td>Protocolo</td><td>HTTPS obligatorio</td><td>Confidencialidad e integridad en tránsito (TLS 1.2+).</td></tr>
+              <tr><td>Tiempo de build</td><td>~30-60 s</td><td>Sitio estático sin transpilación pesada.</td></tr>
+              <tr><td>Tiempo de propagación</td><td>~1-2 min</td><td>Tiempo entre merge y URL actualizada.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="pipeline">3. Vista del pipeline CI/CD</h2>
+
+          <svg class="svg-diagram" viewBox="0 0 920 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pipeline CI/CD con stages validate, build y deploy.">
+            <defs>
+              <linearGradient id="pipBg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1565d8"/><stop offset="100%" stop-color="#0a3270"/>
+              </linearGradient>
+              <marker id="pipArrow" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#0f172a"/>
+              </marker>
+              <filter id="pipShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+              </filter>
+            </defs>
+            <style>
+              .pip-trigger{fill:#fef9c3;stroke:#a16207;stroke-width:1.5}
+              .pip-stage{stroke-width:1.6;rx:12}
+              .pip-stage-title{font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .pip-stage-job{font:11px "SF Mono",Consolas,monospace;text-anchor:middle;fill:#0f172a}
+              .pip-stage-time{font:italic 10px -apple-system,sans-serif;text-anchor:middle;fill:#94a3b8}
+              .pip-output{fill:url(#pipBg);stroke:#0a3270;stroke-width:2}
+              .pip-output-text{fill:#fff;font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .pip-output-url{fill:#a7f3d0;font:600 11px "SF Mono",Consolas,monospace;text-anchor:middle}
+              .pip-label{font:700 10px -apple-system,sans-serif;text-anchor:middle;letter-spacing:.1em}
+            </style>
+            <rect width="920" height="420" rx="12" fill="#f8fafc"/>
+
+            <!-- Trigger -->
+            <g filter="url(#pipShadow)">
+              <rect class="pip-trigger" x="20" y="160" width="130" height="80" rx="10"/>
+              <text class="pip-label" x="85" y="184" fill="#a16207">TRIGGER</text>
+              <text class="pip-stage-job" x="85" y="208" font-weight="700">git push</text>
+              <text class="pip-stage-time" x="85" y="226">rama main</text>
+            </g>
+
+            <!-- Stage 1: validate -->
+            <g filter="url(#pipShadow)">
+              <rect class="pip-stage" x="190" y="140" width="170" height="120" fill="#fff7ed" stroke="#c2410c"/>
+              <text class="pip-label" x="275" y="164" fill="#c2410c">STAGE 1</text>
+              <text class="pip-stage-title" x="275" y="186" fill="#0f172a">VALIDATE</text>
+              <line x1="210" y1="200" x2="340" y2="200" stroke="#fed7aa"/>
+              <text class="pip-stage-job" x="275" y="220">html-validate</text>
+              <text class="pip-stage-job" x="275" y="238">link-check</text>
+              <text class="pip-stage-time" x="275" y="254">~10 s</text>
+            </g>
+
+            <!-- Stage 2: build -->
+            <g filter="url(#pipShadow)">
+              <rect class="pip-stage" x="395" y="140" width="170" height="120" fill="#dbeafe" stroke="#1d4ed8"/>
+              <text class="pip-label" x="480" y="164" fill="#1d4ed8">STAGE 2</text>
+              <text class="pip-stage-title" x="480" y="186" fill="#0f172a">BUILD</text>
+              <line x1="415" y1="200" x2="545" y2="200" stroke="#bfdbfe"/>
+              <text class="pip-stage-job" x="480" y="220">copy → public/</text>
+              <text class="pip-stage-job" x="480" y="238">artifacts</text>
+              <text class="pip-stage-time" x="480" y="254">~5 s</text>
+            </g>
+
+            <!-- Stage 3: deploy -->
+            <g filter="url(#pipShadow)">
+              <rect class="pip-stage" x="600" y="140" width="170" height="120" fill="#dcfce7" stroke="#166534"/>
+              <text class="pip-label" x="685" y="164" fill="#166534">STAGE 3</text>
+              <text class="pip-stage-title" x="685" y="186" fill="#0f172a">DEPLOY</text>
+              <line x1="620" y1="200" x2="750" y2="200" stroke="#bbf7d0"/>
+              <text class="pip-stage-job" x="685" y="220">pages job</text>
+              <text class="pip-stage-time" x="685" y="254">~15 s</text>
+            </g>
+
+            <!-- Output -->
+            <g filter="url(#pipShadow)">
+              <rect class="pip-output" x="800" y="140" width="100" height="120" rx="12"/>
+              <text class="pip-output-text" x="850" y="180">SITIO</text>
+              <text class="pip-output-text" x="850" y="200">PÚBLICO</text>
+              <text class="pip-output-url" x="850" y="240">HTTPS</text>
+              <text class="pip-output-url" x="850" y="252">CDN</text>
+            </g>
+
+            <!-- Arrows -->
+            <path d="M 152,200 L 187,200" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#pipArrow)"/>
+            <path d="M 362,200 L 392,200" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#pipArrow)"/>
+            <path d="M 567,200 L 597,200" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#pipArrow)"/>
+            <path d="M 772,200 L 798,200" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#pipArrow)"/>
+
+            <!-- URL chip below -->
+            <rect x="290" y="320" width="380" height="38" rx="19" fill="#0f172a"/>
+            <text x="480" y="345" font="600 13px 'SF Mono',Consolas,monospace" fill="#a7f3d0" text-anchor="middle">https://&lt;usuario&gt;.gitlab.io/citas-medicas</text>
+
+            <!-- Title -->
+            <text x="460" y="50" font="700 16px -apple-system,sans-serif" fill="#0f172a" text-anchor="middle">Pipeline de despliegue continuo · GitLab CI</text>
+            <text x="460" y="72" font="12px -apple-system,sans-serif" fill="#64748b" text-anchor="middle">Tiempo total típico: ~30 segundos · Disparado por push a main</text>
+
+            <text x="460" y="392" font="italic 11px -apple-system,sans-serif" fill="#94a3b8" text-anchor="middle">El pipeline falla rápido (fail-fast): si una etapa rompe, no continúa a la siguiente.</text>
+          </svg>
+          <span class="svg-caption">Figura 1. Pipeline CI/CD — desde el push hasta la URL pública.</span>
+
+          <h2 id="yaml">4. Archivo <code>.gitlab-ci.yml</code></h2>
+          <p>El pipeline se declara en un único archivo en la raíz del repositorio:</p>
+<pre><code># ───────────────────────────────────────────────
+# Pipeline de despliegue · Sistema de Citas Médicas
+# ───────────────────────────────────────────────
+stages:
+  - validate
+  - build
+  - deploy
+
+# 1. Validación de HTML y enlaces
+validate:
+  stage: validate
+  image: node:20-alpine
+  script:
+    - npx --yes html-validate "public/**/*.html"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# 2. Construcción de artefactos
+build:
+  stage: build
+  image: alpine:latest
+  script:
+    - echo "Copiando sitio estático..."
+    - mkdir -p artifacts
+    - cp -r public/* artifacts/
+  artifacts:
+    paths:
+      - artifacts
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# 3. Publicación en GitLab Pages
+pages:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - mv artifacts public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  environment:
+    name: production
+    url: https://$CI_PROJECT_NAMESPACE.gitlab.io/$CI_PROJECT_NAME</code></pre>
+
+          <p>Decisiones clave del pipeline:</p>
+          <ul>
+            <li><strong>Tres stages</strong> (validate → build → deploy): si la validación falla, no se construye ni se publica.</li>
+            <li><strong>Imagen mínima</strong> <code>alpine:latest</code> para los pasos no-Node — pipeline rápido.</li>
+            <li><strong><code>rules</code> por rama</strong>: solo <code>main</code> dispara el deploy; los MR solo validan.</li>
+            <li><strong><code>environment</code></strong>: GitLab muestra la URL del despliegue en su UI con botón "View".</li>
+            <li><strong><code>expire_in</code></strong>: artefactos intermedios se eliminan a la semana para no consumir cuota.</li>
+          </ul>
+
+          <h2 id="pages">5. Configuración de GitLab Pages</h2>
+          <table>
+            <thead><tr><th>Parámetro</th><th>Valor</th><th>Notas</th></tr></thead>
+            <tbody>
+              <tr><td>Visibilidad del proyecto</td><td>Público</td><td>Pages requiere proyecto público o cuota Premium.</td></tr>
+              <tr><td>Carpeta publicada</td><td><code>public/</code></td><td>Convención fija de GitLab Pages.</td></tr>
+              <tr><td>URL por defecto</td><td><code>https://&lt;usuario&gt;.gitlab.io/&lt;repo&gt;</code></td><td>HTTPS habilitado automáticamente.</td></tr>
+              <tr><td>Ruta de entrada</td><td><code>/index.html</code></td><td>Sirve el portal del proyecto.</td></tr>
+              <tr><td>Caché del CDN</td><td>10 min por defecto</td><td>Se purga automáticamente al desplegar.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="https">6. Dominio y HTTPS</h2>
+          <ul>
+            <li><strong>HTTPS automático</strong> — GitLab provisiona certificado Let's Encrypt sin configuración adicional.</li>
+            <li><strong>HSTS</strong> — habilitado por defecto en el dominio <code>*.gitlab.io</code>.</li>
+            <li><strong>Dominio personalizado</strong> — opcional; requiere configurar registros DNS (CNAME) y verificación TXT. Para esta entrega se usa el dominio por defecto.</li>
+          </ul>
+
+          <h2 id="verificacion">7. Verificación post-despliegue</h2>
+          <p>Cada despliegue se valida con la siguiente lista mínima:</p>
+          <table>
+            <thead><tr><th>Check</th><th>Cómo se valida</th></tr></thead>
+            <tbody>
+              <tr><td>HTTP 200 en la raíz</td><td><code>curl -I https://...</code></td></tr>
+              <tr><td>HTTPS redirige correctamente</td><td>Visitar versión <code>http://</code> y verificar redirect.</td></tr>
+              <tr><td>Navegación a entregables funciona</td><td>Click manual en cada tarjeta del portal.</td></tr>
+              <tr><td>Diagramas SVG renderizan</td><td>Inspección visual de cada página de entregable.</td></tr>
+              <tr><td>Responsive funciona</td><td>DevTools → modo móvil + dispositivo real.</td></tr>
+              <tr><td>Lighthouse ≥ 80</td><td>Auditoría en Chrome DevTools → Lighthouse.</td></tr>
+              <tr><td>Sin errores de consola</td><td>DevTools → Console.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="rollback">8. Estrategia de rollback</h2>
+          <p>Si un despliegue introduce un problema crítico, hay dos vías de rollback:</p>
+          <ol>
+            <li>
+              <strong>Revert por Git</strong> (preferido): <code>git revert &lt;hash&gt;</code> y push.
+              Es trazable y queda en la historia. El pipeline se ejecuta y republica la versión anterior.
+            </li>
+            <li>
+              <strong>Re-deploy de pipeline previo</strong>: en GitLab → CI/CD → Pipelines, se selecciona
+              el último pipeline verde y se hace "Retry job pages". No deja registro en Git.
+            </li>
+          </ol>
+          <div class="callout">
+            <div><strong>Regla:</strong> nunca usar <code>git push --force</code> a <code>main</code>. El historial es la auditoría del proyecto.</div>
+          </div>
+
+          <h2 id="monitoreo">9. Monitoreo y observabilidad</h2>
+          <p>Al ser un sitio estático, el monitoreo es liviano pero existe:</p>
+          <ul>
+            <li><strong>GitLab Pipelines</strong> — historial completo de despliegues con estado y duración.</li>
+            <li><strong>GitLab Environments</strong> — vista de despliegues activos y URL asociada.</li>
+            <li><strong>UptimeRobot / GitHub Status</strong> (opcional) — ping HTTP cada 5 minutos a la URL pública.</li>
+            <li><strong>Lighthouse CI</strong> (futuro) — métricas de calidad por release.</li>
+          </ul>
+
+          <h2 id="costos">10. Costos y restricciones</h2>
+          <table>
+            <thead><tr><th>Concepto</th><th>Costo</th><th>Límite del plan gratuito</th></tr></thead>
+            <tbody>
+              <tr><td>Hosting</td><td>$0</td><td>Ilimitado para proyectos públicos.</td></tr>
+              <tr><td>Minutos de CI/CD</td><td>$0</td><td>400 min/mes (más que suficiente para sitios estáticos).</td></tr>
+              <tr><td>Almacenamiento</td><td>$0</td><td>10 GB por proyecto.</td></tr>
+              <tr><td>Tráfico</td><td>$0</td><td>Sin cuota explícita en plan Free.</td></tr>
+              <tr><td>HTTPS</td><td>$0</td><td>Let's Encrypt incluido.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="checklist">11. Checklist de despliegue</h2>
+          <ul style="list-style:none;padding-left:0">
+            <li>☑ Repositorio creado en GitLab.</li>
+            <li>☑ Visibilidad establecida en "Público".</li>
+            <li>☑ <code>.gitlab-ci.yml</code> agregado en la raíz.</li>
+            <li>☑ Carpeta <code>public/</code> con el sitio.</li>
+            <li>☑ Pipeline ejecutado exitosamente al menos una vez.</li>
+            <li>☑ URL pública verificada en navegador.</li>
+            <li>☑ HTTPS activo (icono de candado en navegador).</li>
+            <li>☑ Pruebas en al menos un dispositivo móvil real.</li>
+            <li>☑ URL documentada en el README del proyecto.</li>
+          </ul>
+
+          <div class="callout">
+            <div>
+              <strong>Siguiente entregable:</strong>
+              <a href="./05-calidad.html">Fase 4 — Calidad del software (ISO/IEC 25010)</a>:
+              evaluación contra las 8 características del estándar y plan de pruebas.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

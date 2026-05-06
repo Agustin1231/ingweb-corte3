@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Entregable Fase 5 — Seguridad web: OWASP Top 10, cifrado, autenticación y Security by Design." />
+  <title>Fase 5 · Seguridad · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#proposito">Propósito</a></li>
+            <li><a href="#sbyd">Security by Design</a></li>
+            <li><a href="#defensa">Defensa en profundidad</a></li>
+            <li><a href="#owasp">OWASP Top 10</a></li>
+            <li><a href="#auth">Autenticación / autorización</a></li>
+            <li><a href="#cifrado">Cifrado</a></li>
+            <li><a href="#confid">Confidencialidad</a></li>
+            <li><a href="#validacion">Validación e inputs</a></li>
+            <li><a href="#https">HTTPS y headers</a></li>
+            <li><a href="#auditoria">Logging y auditoría</a></li>
+            <li><a href="#incidentes">Respuesta a incidentes</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Fase 5</span> <span class="tag green">Entregable</span></p>
+          <h1>Seguridad web</h1>
+          <div class="doc-meta">
+            Conceptos: OWASP · Cifrado · Autenticación · Confidencialidad · Security by Design · Versión 1.0 · 2026-05-05
+          </div>
+
+          <h2 id="proposito">1. Propósito</h2>
+          <p>
+            Este documento describe las medidas de seguridad incorporadas al sistema, las
+            verifica contra el referente <strong>OWASP Top 10</strong> y demuestra que la
+            seguridad es <em>parte del diseño</em>, no un añadido posterior.
+          </p>
+          <blockquote>
+            La seguridad parchada después es cara y frágil. La seguridad diseñada desde el
+            principio es invisible y robusta.
+          </blockquote>
+
+          <h2 id="sbyd">2. Security by Design</h2>
+          <p>El proyecto adopta los principios fundamentales de Security by Design:</p>
+          <table>
+            <thead><tr><th>Principio</th><th>Aplicación</th></tr></thead>
+            <tbody>
+              <tr><td>Menor privilegio</td><td>Roles diferenciados (paciente, staff, admin); cada uno solo accede a lo necesario.</td></tr>
+              <tr><td>Defensa en profundidad</td><td>Múltiples capas de control: HTTPS, auth, autorización, validación, hash.</td></tr>
+              <tr><td>Fail secure</td><td>Si algo falla, el sistema cierra acceso por defecto (deny-by-default).</td></tr>
+              <tr><td>Mediación completa</td><td>Cada request pasa por validación de auth y rol; sin atajos.</td></tr>
+              <tr><td>Diseño abierto</td><td>La seguridad no depende de "secretos del código"; depende de claves bien gestionadas.</td></tr>
+              <tr><td>Separación de privilegios</td><td>Roles independientes; el admin no es el dueño del recurso, es el supervisor.</td></tr>
+              <tr><td>Mínimo común denominador</td><td>Validación autoritativa en servidor, sin asumir nada del cliente.</td></tr>
+              <tr><td>Aceptabilidad psicológica</td><td>Mensajes de error claros sin filtrar información sensible.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="defensa">3. Defensa en profundidad</h2>
+          <p>Capas de control que un request debe atravesar para alcanzar los datos:</p>
+
+          <svg class="svg-diagram" viewBox="0 0 760 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Defensa en profundidad: capas concéntricas de seguridad rodeando los datos.">
+            <defs>
+              <filter id="defShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+              </filter>
+            </defs>
+            <style>
+              .def-layer{stroke-width:1.6}
+              .def-label{font:700 13px -apple-system,sans-serif;text-anchor:start}
+              .def-sub{font:11px -apple-system,sans-serif;font-style:italic;text-anchor:start}
+              .def-data{fill:#fee2e2;stroke:#991b1b;stroke-width:2}
+              .def-data-text{fill:#991b1b;font:700 14px -apple-system,sans-serif;text-anchor:middle}
+              .def-data-sub{fill:#7f1d1d;font:11px -apple-system,sans-serif;text-anchor:middle}
+              .def-attacker{fill:#0f172a}
+              .def-attacker-text{fill:#fff;font:700 11px -apple-system,sans-serif;text-anchor:middle}
+            </style>
+            <rect width="760" height="620" rx="12" fill="#f8fafc"/>
+
+            <text x="380" y="34" font="700 16px -apple-system,sans-serif" fill="#0f172a" text-anchor="middle">Defensa en profundidad</text>
+            <text x="380" y="54" font="12px -apple-system,sans-serif" fill="#64748b" text-anchor="middle">7 capas que protegen los datos sensibles</text>
+
+            <!-- Layer 1: HTTPS / TLS (outermost) -->
+            <rect class="def-layer" x="40" y="80" width="680" height="500" rx="22" fill="#dbeafe" stroke="#1d4ed8" filter="url(#defShadow)"/>
+            <text class="def-label" x="60" y="108" fill="#1d4ed8">1 · HTTPS / TLS 1.2+</text>
+            <text class="def-sub" x="60" y="124" fill="#1e3a8a">Cifrado del transporte · certificado Let's Encrypt</text>
+
+            <!-- Layer 2: Headers + Rate limit -->
+            <rect class="def-layer" x="80" y="148" width="600" height="412" rx="20" fill="#e0e7ff" stroke="#3730a3"/>
+            <text class="def-label" x="100" y="176" fill="#3730a3">2 · Headers de seguridad + Rate limit</text>
+            <text class="def-sub" x="100" y="192" fill="#312e81">CSP · HSTS · X-Frame · 5 intentos/min en login</text>
+
+            <!-- Layer 3: Authentication -->
+            <rect class="def-layer" x="120" y="216" width="520" height="324" rx="18" fill="#ede9fe" stroke="#6d28d9"/>
+            <text class="def-label" x="140" y="244" fill="#6d28d9">3 · Autenticación · token Bearer</text>
+            <text class="def-sub" x="140" y="260" fill="#5b21b6">Token firmado · expira en 1 h</text>
+
+            <!-- Layer 4: Authorization -->
+            <rect class="def-layer" x="160" y="284" width="440" height="236" rx="16" fill="#fce7f3" stroke="#be185d"/>
+            <text class="def-label" x="180" y="312" fill="#be185d">4 · Autorización · RBAC</text>
+            <text class="def-sub" x="180" y="328" fill="#9d174d">Verificación de rol en cada endpoint</text>
+
+            <!-- Layer 5: Input validation -->
+            <rect class="def-layer" x="200" y="352" width="360" height="148" rx="14" fill="#ffedd5" stroke="#c2410c"/>
+            <text class="def-label" x="220" y="380" fill="#c2410c">5 · Validación de inputs</text>
+            <text class="def-sub" x="220" y="396" fill="#9a3412">Schema en cliente y autoritativa en servidor</text>
+
+            <!-- Layer 6: Hashing -->
+            <rect class="def-layer" x="240" y="420" width="280" height="60" rx="12" fill="#fef9c3" stroke="#a16207"/>
+            <text class="def-label" x="260" y="448" fill="#a16207">6 · Hash + Salt</text>
+            <text class="def-sub" x="260" y="464" fill="#854d0e">Contraseñas con bcrypt/Argon2</text>
+
+            <!-- Center: DATA -->
+            <rect class="def-data" x="295" y="525" width="170" height="44" rx="10"/>
+            <text class="def-data-text" x="380" y="548">DATOS SENSIBLES</text>
+            <text class="def-data-sub" x="380" y="562">credenciales · citas · perfiles</text>
+
+            <!-- Attacker (outside) -->
+            <g transform="translate(40,600)">
+              <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+              <text x="22" y="5" font="11px -apple-system,sans-serif" fill="#0f172a">atacante externo</text>
+            </g>
+          </svg>
+          <span class="svg-caption">Figura 1. Modelo de defensa en profundidad — siete capas progresivas hasta los datos.</span>
+
+          <h2 id="owasp">4. OWASP Top 10 — análisis</h2>
+          <p>Estado del proyecto frente al OWASP Top 10 (edición 2021):</p>
+          <table>
+            <thead><tr><th>Riesgo</th><th>Descripción breve</th><th>Mitigación en el proyecto</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>A01</strong> Broken Access Control</td>
+                <td>Usuarios acceden a recursos que no deberían.</td>
+                <td>RBAC por rol, validación de propiedad del recurso (cita.usuario_id == usuario actual).</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A02</strong> Cryptographic Failures</td>
+                <td>Datos sensibles expuestos por cifrado débil.</td>
+                <td>HTTPS obligatorio, hash + salt para contraseñas, datos sensibles nunca en URL.</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A03</strong> Injection</td>
+                <td>Inyección SQL/NoSQL/comandos.</td>
+                <td>Queries parametrizadas, validación de tipos, escapado de salida.</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A04</strong> Insecure Design</td>
+                <td>Diseño inseguro desde el origen.</td>
+                <td>Modelo de amenazas en Fase 1; Security by Design aplicado.</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A05</strong> Security Misconfiguration</td>
+                <td>Configuraciones por defecto inseguras.</td>
+                <td>Headers de seguridad en respuestas, deshabilitar verbose errors en producción.</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A06</strong> Vulnerable Components</td>
+                <td>Dependencias con CVEs conocidos.</td>
+                <td>Stack mínimo, sin frameworks pesados; revisión de dependencias.</td>
+                <td><span class="tag amber">Parcial</span></td>
+              </tr>
+              <tr>
+                <td><strong>A07</strong> Auth Failures</td>
+                <td>Login débil, sesiones mal gestionadas.</td>
+                <td>Rate limiting en login, token con expiración, mensajes genéricos de error.</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A08</strong> Software & Data Integrity</td>
+                <td>Actualizaciones o datos sin verificar.</td>
+                <td>Despliegue solo desde rama <code>main</code> con merge revisado; no hay carga arbitraria de datos.</td>
+                <td><span class="tag green">Mitigado</span></td>
+              </tr>
+              <tr>
+                <td><strong>A09</strong> Logging & Monitoring</td>
+                <td>Sin trazabilidad de incidentes.</td>
+                <td>Log de operaciones críticas (auditoría) + GitLab pipeline history.</td>
+                <td><span class="tag amber">Parcial</span></td>
+              </tr>
+              <tr>
+                <td><strong>A10</strong> SSRF</td>
+                <td>El servidor hace requests a recursos internos.</td>
+                <td>El sistema no realiza requests salientes a URLs provistas por el usuario.</td>
+                <td><span class="tag green">N/A</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2 id="auth">5. Autenticación y autorización</h2>
+          <h3>5.1 Autenticación</h3>
+          <ul>
+            <li><strong>Método:</strong> token Bearer firmado, emitido al login.</li>
+            <li><strong>Validez:</strong> 1 hora; el cliente debe re-autenticarse o usar refresh token.</li>
+            <li><strong>Mensaje de error:</strong> genérico (<code>CREDENCIALES_INVALIDAS</code>) — no diferencia "email no existe" vs "password incorrecto".</li>
+            <li><strong>Rate limiting:</strong> 5 intentos por IP/email cada 5 minutos.</li>
+            <li><strong>Política de password:</strong> ≥ 8 caracteres, al menos 1 número y 1 mayúscula.</li>
+          </ul>
+
+          <h3>5.2 Autorización (RBAC)</h3>
+          <table>
+            <thead><tr><th>Recurso</th><th>Paciente</th><th>Staff</th><th>Admin</th></tr></thead>
+            <tbody>
+              <tr><td>Sus propias citas</td><td>R/W</td><td>R/W</td><td>R/W</td></tr>
+              <tr><td>Citas de otros</td><td>—</td><td>R/W</td><td>R/W</td></tr>
+              <tr><td>Médicos</td><td>R</td><td>R</td><td>R/W</td></tr>
+              <tr><td>Horarios</td><td>R</td><td>R/W</td><td>R/W</td></tr>
+              <tr><td>Reportes</td><td>—</td><td>—</td><td>R</td></tr>
+              <tr><td>Auditoría</td><td>—</td><td>—</td><td>R</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="cifrado">6. Cifrado</h2>
+          <table>
+            <thead><tr><th>Dónde</th><th>Qué</th><th>Cómo</th></tr></thead>
+            <tbody>
+              <tr><td>En tránsito</td><td>Toda comunicación cliente↔servidor</td><td>HTTPS / TLS 1.2+ con certificado Let's Encrypt.</td></tr>
+              <tr><td>Contraseñas</td><td>Almacenamiento en BD</td><td>Hash unidireccional (bcrypt/Argon2) con salt único por usuario.</td></tr>
+              <tr><td>Tokens</td><td>Firma del token Bearer</td><td>Clave secreta del servidor; rotación documentada.</td></tr>
+              <tr><td>Datos personales</td><td>Información de pacientes</td><td>En reposo: cifrado a nivel de BD si el motor lo soporta.</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <div><strong>Lo que NUNCA hacemos:</strong> almacenar contraseñas en texto plano, transmitir credenciales por GET, exponer hashes en respuestas de API, usar MD5 o SHA-1 para passwords.</div>
+          </div>
+
+          <h2 id="confid">7. Confidencialidad de datos personales</h2>
+          <ul>
+            <li><strong>Principio de mínima exposición:</strong> los endpoints solo devuelven los campos necesarios.</li>
+            <li><strong>Sin PII en logs:</strong> los logs no registran emails, contraseñas ni datos identificables.</li>
+            <li><strong>Sin PII en URLs:</strong> los identificadores son opacos (UUID/slug), no valores sensibles.</li>
+            <li><strong>Borrado lógico:</strong> las cancelaciones marcan estado, no eliminan; el usuario puede solicitar borrado total (derecho al olvido).</li>
+            <li><strong>Política de retención:</strong> registros de auditoría se conservan 12 meses.</li>
+          </ul>
+
+          <h2 id="validacion">8. Validación e inputs</h2>
+          <ul>
+            <li><strong>Doble validación:</strong> el cliente valida para UX, el servidor valida con autoridad.</li>
+            <li><strong>Validación por schema:</strong> cada endpoint declara los tipos esperados; lo que no encaja se rechaza con 400.</li>
+            <li><strong>Allow-list, no deny-list:</strong> se aceptan formatos conocidos en lugar de rechazar formatos malos.</li>
+            <li><strong>Límites de tamaño:</strong> bodies con tope para prevenir DoS por payload masivo.</li>
+            <li><strong>Escapado de salida:</strong> todo dato proveniente del usuario se escapa antes de renderizar (anti-XSS).</li>
+          </ul>
+
+          <h2 id="https">9. HTTPS y headers de seguridad</h2>
+          <p>Headers que el servidor (o el meta-tag del cliente para el caso estático) declara:</p>
+<pre><code>Strict-Transport-Security: max-age=31536000; includeSubDomains
+Content-Security-Policy: default-src 'self'; img-src 'self' data:;
+                          style-src 'self' 'unsafe-inline'
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer-when-downgrade
+Permissions-Policy: geolocation=(), camera=(), microphone=()</code></pre>
+
+          <h2 id="auditoria">10. Logging y auditoría</h2>
+          <table>
+            <thead><tr><th>Evento</th><th>Qué se registra</th></tr></thead>
+            <tbody>
+              <tr><td>Login exitoso</td><td>usuario_id, timestamp, IP truncada.</td></tr>
+              <tr><td>Login fallido</td><td>email (si existe), timestamp, IP. <em>No</em> el password ingresado.</td></tr>
+              <tr><td>Cambio de rol</td><td>usuario_id, rol anterior, rol nuevo, admin que ejecutó.</td></tr>
+              <tr><td>Alta/baja de médico</td><td>medico_id, acción, admin que ejecutó.</td></tr>
+              <tr><td>Cancelación administrativa</td><td>cita_id, motivo, staff que ejecutó.</td></tr>
+              <tr><td>Acceso denegado</td><td>endpoint, rol del usuario, timestamp.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="incidentes">11. Plan de respuesta a incidentes</h2>
+          <ol>
+            <li><strong>Detección:</strong> revisar logs y métricas; alertas si hay patrones anómalos (picos de 401, accesos a /admin desde IPs no usuales).</li>
+            <li><strong>Contención:</strong> revocar tokens activos, deshabilitar cuentas comprometidas, rotar claves del servidor.</li>
+            <li><strong>Erradicación:</strong> identificar la causa raíz, desplegar parche, validar.</li>
+            <li><strong>Recuperación:</strong> restaurar desde backup si hubo pérdida; comunicar a usuarios afectados.</li>
+            <li><strong>Lecciones aprendidas:</strong> documentar el incidente, ajustar pruebas y monitoreo.</li>
+          </ol>
+
+          <div class="callout">
+            <div>
+              <strong>Siguiente entregable:</strong>
+              <a href="./07-riesgos.html">Fase 6 — Gestión de riesgos</a>: matriz probabilidad × impacto y plan de mitigación.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

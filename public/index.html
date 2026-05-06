@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portal de entregables de ingeniería del Sistema Web de Gestión de Citas Médicas — Ingeniería Web Corte III." />
+  <title>Sistema de Citas Médicas · Ingeniería Web Corte III</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="./index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav" aria-label="Navegación principal">
+          <a href="./index.html" class="active">Inicio</a>
+          <a href="#entregables">Entregables</a>
+          <a href="./app/index.html">Aplicación</a>
+          <a href="#equipo">Equipo</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+
+      <!-- HERO -->
+      <section class="hero">
+        <div class="container">
+          <h1>Sistema Web de Gestión de Citas Médicas</h1>
+          <p class="lead">
+            Proyecto académico de la asignatura <strong>Ingeniería Web — Corte III</strong>.
+            Este portal expone las decisiones de ingeniería detrás del sistema:
+            arquitectura, calidad, seguridad, riesgos y metodología.
+          </p>
+          <div class="hero-meta">
+            <span class="chip">Docente · Ing. Jairo A. Salcedo Aranda</span>
+            <span class="chip">Entrega · 6 de mayo de 2026</span>
+            <span class="chip">Despliegue · GitLab Pages</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- INTRO -->
+      <section class="block">
+        <div class="container">
+          <p class="section-title">Sobre el proyecto</p>
+          <h2 class="section-heading">¿Qué problema resolvemos?</h2>
+          <p class="section-lead">
+            Una clínica gestiona sus citas de forma manual, lo que produce errores de
+            agendamiento, demoras de atención y pérdida de información. El sistema
+            digitaliza ese proceso permitiendo a pacientes registrarse, consultar
+            disponibilidad y agendar citas; y a la clínica administrarlas con
+            trazabilidad y seguridad.
+          </p>
+
+          <div class="cards">
+            <div class="card">
+              <span class="badge">Arquitectura</span>
+              <h3>Cliente-Servidor en 3 capas</h3>
+              <p>Presentación, lógica y datos claramente separados, con módulos de bajo acoplamiento.</p>
+            </div>
+            <div class="card">
+              <span class="badge">Calidad</span>
+              <h3>ISO/IEC 25010</h3>
+              <p>Las 8 características de calidad del software como criterio de evaluación.</p>
+            </div>
+            <div class="card">
+              <span class="badge">Seguridad</span>
+              <h3>OWASP + Security by Design</h3>
+              <p>Decisiones de seguridad incorporadas desde el diseño, no como parche posterior.</p>
+            </div>
+            <div class="card">
+              <span class="badge">Metodología</span>
+              <h3>Scrum + Git</h3>
+              <p>Sprints cortos con entregables verificables y control de versiones.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ENTREGABLES -->
+      <section class="block" id="entregables">
+        <div class="container">
+          <p class="section-title">Entregables por fase</p>
+          <h2 class="section-heading">Documentación de ingeniería</h2>
+          <p class="section-lead">
+            Cada fase del proyecto produce un entregable verificable. Da clic en cada
+            tarjeta para revisar el documento correspondiente.
+          </p>
+
+          <div class="cards">
+
+            <a class="card" href="./entregables/01-arquitectura.html">
+              <span class="badge">Fase 1</span>
+              <h3>Arquitectura del sistema</h3>
+              <p>Estilo cliente-servidor en 3 capas, vistas, módulos, principios de diseño y ADRs.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/02-api.html">
+              <span class="badge">Fase 2 · A</span>
+              <h3>Contrato de la API</h3>
+              <p>Especificación REST: endpoints, autenticación, errores, modelos de datos y versionado.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/03-scrum.html">
+              <span class="badge">Fase 2 · B</span>
+              <h3>Scrum + Git</h3>
+              <p>Roles, eventos, 14 historias en 3 sprints, branching y tablero Kanban.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/04-despliegue.html">
+              <span class="badge">Fase 3</span>
+              <h3>Despliegue en la nube</h3>
+              <p>Pipeline CI/CD, .gitlab-ci.yml comentado, GitLab Pages y verificación.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/05-calidad.html">
+              <span class="badge">Fase 4</span>
+              <h3>Calidad del software</h3>
+              <p>ISO/IEC 25010 con radar, 15 casos de prueba PASS y métricas Lighthouse.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/06-seguridad.html">
+              <span class="badge">Fase 5</span>
+              <h3>Seguridad web</h3>
+              <p>OWASP Top 10, defensa en profundidad, cifrado y Security by Design.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/07-riesgos.html">
+              <span class="badge">Fase 6</span>
+              <h3>Gestión de riesgos</h3>
+              <p>Matriz visual 5×5 con 8 riesgos identificados y plan de mitigación.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./entregables/08-evaluacion.html">
+              <span class="badge">Fase 7</span>
+              <h3>Evaluación final</h3>
+              <p>Checklist consolidado, trazabilidad de los 20 conceptos y cierre del proyecto.</p>
+              <span class="card-foot">Ver entregable →</span>
+            </a>
+
+            <a class="card" href="./app/index.html">
+              <span class="badge">Aplicación</span>
+              <h3>Sistema funcional</h3>
+              <p>Demo de la aplicación que evidencia los módulos y conceptos descritos.</p>
+              <span class="card-foot">Ver demo →</span>
+            </a>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- CONCEPTOS -->
+      <section class="block">
+        <div class="container">
+          <p class="section-title">Conceptos cubiertos</p>
+          <h2 class="section-heading">Mapa de ingeniería web aplicado</h2>
+          <p class="section-lead">
+            Los 20 conceptos del crucigrama se mapean a artefactos concretos del proyecto:
+          </p>
+          <div class="cards">
+            <div class="card"><h3>Web 2.0</h3><p>Aplicación dinámica con interacción usuario-servidor.</p></div>
+            <div class="card"><h3>Cliente-Servidor</h3><p>Diagrama de arquitectura en 3 capas.</p></div>
+            <div class="card"><h3>W3C</h3><p>HTML semántico y accesibilidad.</p></div>
+            <div class="card"><h3>Modularidad</h3><p>Módulos: usuarios, citas, administrativo.</p></div>
+            <div class="card"><h3>Backend</h3><p>Capa de lógica y reglas de negocio.</p></div>
+            <div class="card"><h3>API</h3><p>Contrato REST documentado.</p></div>
+            <div class="card"><h3>Git</h3><p>Historial de commits y ramas por sprint.</p></div>
+            <div class="card"><h3>Scrum</h3><p>Sprints y tablero de historias.</p></div>
+            <div class="card"><h3>Nube</h3><p>Despliegue en GitLab Pages con HTTPS.</p></div>
+            <div class="card"><h3>Mantenibilidad</h3><p>Código modular y convenciones claras.</p></div>
+            <div class="card"><h3>ISO 25010</h3><p>Las 8 características de calidad.</p></div>
+            <div class="card"><h3>Análisis de riesgos</h3><p>Matriz probabilidad × impacto.</p></div>
+            <div class="card"><h3>UX</h3><p>Flujos centrados en el usuario.</p></div>
+            <div class="card"><h3>Testing</h3><p>Plan y resultados de pruebas.</p></div>
+            <div class="card"><h3>Confidencialidad</h3><p>Tratamiento de datos personales.</p></div>
+            <div class="card"><h3>OWASP</h3><p>Revisión del Top 10.</p></div>
+            <div class="card"><h3>Security by Design</h3><p>Seguridad desde el diseño.</p></div>
+            <div class="card"><h3>Cifrado</h3><p>Hash de contraseñas + HTTPS.</p></div>
+            <div class="card"><h3>Autenticación</h3><p>Login y control de acceso por roles.</p></div>
+            <div class="card"><h3>Prevención</h3><p>Validación, manejo de errores, backups.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EQUIPO -->
+      <section class="block" id="equipo">
+        <div class="container">
+          <p class="section-title">Equipo</p>
+          <h2 class="section-heading">Información del proyecto</h2>
+          <table>
+            <tbody>
+              <tr><th>Asignatura</th><td>Ingeniería Web — Corte III</td></tr>
+              <tr><th>Docente</th><td>Ing. Jairo Armando Salcedo Aranda</td></tr>
+              <tr><th>Caso</th><td>Sistema Web de Gestión de Citas Médicas para una Clínica</td></tr>
+              <tr><th>Entrega final</th><td>Miércoles 6 de mayo de 2026</td></tr>
+              <tr><th>Despliegue</th><td>GitLab Pages</td></tr>
+              <tr><th>Repositorio</th><td>(por publicar)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <span>Desplegado en GitLab Pages</span>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

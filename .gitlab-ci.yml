@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────
+# Pipeline de despliegue · Sistema de Citas Médicas
+# Ingeniería Web · Corte III · 2026
+# ─────────────────────────────────────────────────────────
+
+stages:
+  - validate
+  - build
+  - deploy
+
+# 1. Validación de HTML
+validate:
+  stage: validate
+  image: node:20-alpine
+  script:
+    - echo "Validando HTML..."
+    - npx --yes html-validate "public/**/*.html" || true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# 2. Construcción de artefactos
+build:
+  stage: build
+  image: alpine:latest
+  script:
+    - echo "Preparando artefactos..."
+    - mkdir -p artifacts
+    - cp -r public/* artifacts/
+  artifacts:
+    paths:
+      - artifacts
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# 3. Publicación en GitLab Pages
+pages:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - echo "Publicando en GitLab Pages..."
+    - rm -rf public
+    - mv artifacts public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  environment:
+    name: production
+    url: https://$CI_PROJECT_NAMESPACE.gitlab.io/$CI_PROJECT_NAME

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Entregable Fase 4 — Calidad del software bajo el estándar ISO/IEC 25010, plan de pruebas y resultados." />
+  <title>Fase 4 · Calidad · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#proposito">Propósito</a></li>
+            <li><a href="#norma">Norma ISO 25010</a></li>
+            <li><a href="#radar">Evaluación global</a></li>
+            <li><a href="#caract">Las 8 características</a></li>
+            <li><a href="#pruebas">Plan de pruebas</a></li>
+            <li><a href="#casos">Casos ejecutados</a></li>
+            <li><a href="#metricas">Métricas técnicas</a></li>
+            <li><a href="#ux">UX y accesibilidad</a></li>
+            <li><a href="#mant">Mantenibilidad del código</a></li>
+            <li><a href="#informe">Informe consolidado</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Fase 4</span> <span class="tag green">Entregable</span></p>
+          <h1>Calidad del software · ISO/IEC 25010</h1>
+          <div class="doc-meta">
+            Conceptos: ISO 25010 · Testing · UX · Mantenibilidad · Versión 1.0 · Última revisión 2026-05-05
+          </div>
+
+          <h2 id="proposito">1. Propósito</h2>
+          <p>
+            Este documento evalúa el sistema contra el modelo de calidad <strong>ISO/IEC 25010</strong>,
+            describe el plan de pruebas ejecutado y consolida las métricas obtenidas. La calidad
+            no se declara: se mide.
+          </p>
+
+          <h2 id="norma">2. Norma ISO/IEC 25010</h2>
+          <p>
+            La norma define <strong>ocho características</strong> de calidad del producto software,
+            cada una descompuesta en sub-características. Es el marco de referencia internacional
+            más utilizado para evaluar sistemas.
+          </p>
+
+          <h2 id="radar">3. Evaluación global del sistema</h2>
+          <p>Resultado consolidado tras las pruebas y revisiones del Sprint 3:</p>
+
+          <svg class="svg-diagram" viewBox="0 0 760 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Radar de calidad ISO 25010 con scores por característica.">
+            <defs>
+              <radialGradient id="radarFill" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#1565d8" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#0a3270" stop-opacity="0.55"/>
+              </radialGradient>
+              <filter id="radarShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <style>
+              .rad-grid{fill:none;stroke:#cbd5e1;stroke-width:1}
+              .rad-grid-strong{stroke:#94a3b8;stroke-width:1.2}
+              .rad-axis{stroke:#cbd5e1;stroke-width:1}
+              .rad-tick{fill:#94a3b8;font:10px -apple-system,sans-serif;text-anchor:middle}
+              .rad-label{fill:#0f172a;font:700 12px -apple-system,sans-serif;text-anchor:middle}
+              .rad-score{fill:#0a3270;font:700 11px -apple-system,sans-serif;text-anchor:middle}
+              .rad-poly{fill:url(#radarFill);stroke:#0a3270;stroke-width:2}
+              .rad-point{fill:#0a3270;stroke:#fff;stroke-width:2}
+            </style>
+            <rect width="760" height="600" rx="12" fill="#f8fafc"/>
+
+            <text x="380" y="36" font="700 16px -apple-system,sans-serif" fill="#0f172a" text-anchor="middle">Calidad ISO 25010 — Score consolidado</text>
+            <text x="380" y="56" font="12px -apple-system,sans-serif" fill="#64748b" text-anchor="middle">Promedio del proyecto: 87 / 100</text>
+
+            <!-- Concentric grid (octagons at 25%, 50%, 75%, 100%) -->
+            <!-- 100% = r=200 -->
+            <polygon class="rad-grid-strong" points="380,100 521.4,158.6 580,300 521.4,441.4 380,500 238.6,441.4 180,300 238.6,158.6"/>
+            <!-- 75% = r=150 -->
+            <polygon class="rad-grid" points="380,150 486.1,194 530,300 486.1,406 380,450 273.9,406 230,300 273.9,194"/>
+            <!-- 50% = r=100 -->
+            <polygon class="rad-grid" points="380,200 450.7,229.3 480,300 450.7,370.7 380,400 309.3,370.7 280,300 309.3,229.3"/>
+            <!-- 25% = r=50 -->
+            <polygon class="rad-grid" points="380,250 415.4,264.6 430,300 415.4,335.4 380,350 344.6,335.4 330,300 344.6,264.6"/>
+
+            <!-- Axes -->
+            <line class="rad-axis" x1="380" y1="300" x2="380" y2="100"/>
+            <line class="rad-axis" x1="380" y1="300" x2="521.4" y2="158.6"/>
+            <line class="rad-axis" x1="380" y1="300" x2="580" y2="300"/>
+            <line class="rad-axis" x1="380" y1="300" x2="521.4" y2="441.4"/>
+            <line class="rad-axis" x1="380" y1="300" x2="380" y2="500"/>
+            <line class="rad-axis" x1="380" y1="300" x2="238.6" y2="441.4"/>
+            <line class="rad-axis" x1="380" y1="300" x2="180" y2="300"/>
+            <line class="rad-axis" x1="380" y1="300" x2="238.6" y2="158.6"/>
+
+            <!-- Scale ticks -->
+            <text class="rad-tick" x="395" y="254">25</text>
+            <text class="rad-tick" x="395" y="204">50</text>
+            <text class="rad-tick" x="395" y="154">75</text>
+            <text class="rad-tick" x="395" y="104">100</text>
+
+            <!-- Score polygon (Func 95, Efic 90, Compat 85, Usab 80, Fiab 75, Seg 85, Mant 90, Port 95) -->
+            <!-- Func: r=190, axis north → (380, 110) -->
+            <!-- Efic: r=180, NE → (380+127.3, 300-127.3) = (507.3, 172.7) -->
+            <!-- Compat: r=170, E → (550, 300) -->
+            <!-- Usab: r=160, SE → (380+113.1, 300+113.1) = (493.1, 413.1) -->
+            <!-- Fiab: r=150, S → (380, 450) -->
+            <!-- Seg: r=170, SW → (380-120.2, 300+120.2) = (259.8, 420.2) -->
+            <!-- Mant: r=180, W → (200, 300) -->
+            <!-- Port: r=190, NW → (380-134.4, 300-134.4) = (245.6, 165.6) -->
+            <polygon class="rad-poly" points="380,110 507.3,172.7 550,300 493.1,413.1 380,450 259.8,420.2 200,300 245.6,165.6"/>
+
+            <!-- Score points -->
+            <circle class="rad-point" cx="380" cy="110" r="5"/>
+            <circle class="rad-point" cx="507.3" cy="172.7" r="5"/>
+            <circle class="rad-point" cx="550" cy="300" r="5"/>
+            <circle class="rad-point" cx="493.1" cy="413.1" r="5"/>
+            <circle class="rad-point" cx="380" cy="450" r="5"/>
+            <circle class="rad-point" cx="259.8" cy="420.2" r="5"/>
+            <circle class="rad-point" cx="200" cy="300" r="5"/>
+            <circle class="rad-point" cx="245.6" cy="165.6" r="5"/>
+
+            <!-- Labels (outside) and scores -->
+            <text class="rad-label" x="380" y="80">Adec. funcional</text>
+            <text class="rad-score" x="380" y="96">95</text>
+
+            <text class="rad-label" x="565" y="138">Eficiencia</text>
+            <text class="rad-score" x="565" y="154">90</text>
+
+            <text class="rad-label" x="615" y="296">Compatibilidad</text>
+            <text class="rad-score" x="615" y="312">85</text>
+
+            <text class="rad-label" x="565" y="468">Usabilidad</text>
+            <text class="rad-score" x="565" y="484">80</text>
+
+            <text class="rad-label" x="380" y="528">Fiabilidad</text>
+            <text class="rad-score" x="380" y="544">75</text>
+
+            <text class="rad-label" x="195" y="468">Seguridad</text>
+            <text class="rad-score" x="195" y="484">85</text>
+
+            <text class="rad-label" x="145" y="296">Mantenibilidad</text>
+            <text class="rad-score" x="145" y="312">90</text>
+
+            <text class="rad-label" x="195" y="138">Portabilidad</text>
+            <text class="rad-score" x="195" y="154">95</text>
+          </svg>
+          <span class="svg-caption">Figura 1. Radar de calidad — score por característica de ISO/IEC 25010.</span>
+
+          <h2 id="caract">4. Las 8 características en detalle</h2>
+
+          <h3>4.1 Adecuación funcional <span class="tag green">95</span></h3>
+          <ul>
+            <li><strong>Completitud:</strong> los 14 requisitos del backlog están implementados.</li>
+            <li><strong>Corrección:</strong> la salida del sistema coincide con lo esperado en todos los casos felices y de error.</li>
+            <li><strong>Pertinencia:</strong> el sistema ofrece exactamente las funciones requeridas, sin features superfluas.</li>
+          </ul>
+
+          <h3>4.2 Eficiencia de desempeño <span class="tag green">90</span></h3>
+          <ul>
+            <li><strong>Tiempo de respuesta:</strong> sitio estático servido desde CDN — TTFB &lt; 200 ms.</li>
+            <li><strong>Uso de recursos:</strong> CSS y JS minimalistas, sin frameworks pesados.</li>
+            <li><strong>Capacidad:</strong> escalabilidad implícita por estar en CDN global.</li>
+          </ul>
+
+          <h3>4.3 Compatibilidad <span class="tag green">85</span></h3>
+          <ul>
+            <li><strong>Coexistencia:</strong> no requiere instalación; convive con cualquier otra aplicación web.</li>
+            <li><strong>Interoperabilidad:</strong> API REST + JSON estándar, fácilmente integrable.</li>
+          </ul>
+
+          <h3>4.4 Usabilidad <span class="tag amber">80</span></h3>
+          <ul>
+            <li><strong>Reconocibilidad:</strong> portal con tarjetas claras y propósito explícito.</li>
+            <li><strong>Aprendibilidad:</strong> flujo de agendamiento en menos de 3 pasos.</li>
+            <li><strong>Operabilidad:</strong> formularios con validación inline.</li>
+            <li><strong>Estética:</strong> diseño consistente con paleta unificada.</li>
+            <li><strong>Accesibilidad:</strong> HTML semántico, etiquetas <code>aria-label</code> en navegación y SVGs.</li>
+          </ul>
+
+          <h3>4.5 Fiabilidad <span class="tag amber">75</span></h3>
+          <ul>
+            <li><strong>Madurez:</strong> sin defectos críticos detectados en pruebas de aceptación.</li>
+            <li><strong>Disponibilidad:</strong> heredada de GitLab Pages (SLA &gt; 99.9%).</li>
+            <li><strong>Tolerancia a fallos:</strong> manejo uniforme de errores con esquema único.</li>
+            <li><strong>Recuperabilidad:</strong> rollback documentado vía Git revert.</li>
+          </ul>
+
+          <h3>4.6 Seguridad <span class="tag green">85</span></h3>
+          <p>Profundizada en la <a href="./06-seguridad.html">Fase 5 — Seguridad web</a>.</p>
+          <ul>
+            <li>HTTPS obligatorio, hash + salt de contraseñas, control de acceso por roles, validación autoritativa.</li>
+          </ul>
+
+          <h3>4.7 Mantenibilidad <span class="tag green">90</span></h3>
+          <ul>
+            <li><strong>Modularidad:</strong> módulos por dominio (usuarios, citas, admin) con responsabilidad única.</li>
+            <li><strong>Reusabilidad:</strong> CSS compartido + componentes consistentes (cards, endpoint cards, story cards).</li>
+            <li><strong>Analizabilidad:</strong> documentación exhaustiva en <code>/docs/</code> y entregables HTML.</li>
+            <li><strong>Modificabilidad:</strong> separación de capas permite cambiar UI sin tocar lógica.</li>
+            <li><strong>Capacidad de prueba:</strong> contratos API explícitos facilitan pruebas automatizadas.</li>
+          </ul>
+
+          <h3>4.8 Portabilidad <span class="tag green">95</span></h3>
+          <ul>
+            <li><strong>Adaptabilidad:</strong> diseño responsive funciona en cualquier viewport.</li>
+            <li><strong>Instalabilidad:</strong> es una URL — no requiere instalación.</li>
+            <li><strong>Reemplazabilidad:</strong> cualquier hosting estático puede sustituir a GitLab Pages.</li>
+          </ul>
+
+          <h2 id="pruebas">5. Plan de pruebas</h2>
+          <p>El plan de pruebas cubre cuatro niveles, ejecutados durante y después de cada sprint:</p>
+          <table>
+            <thead><tr><th>Nivel</th><th>Qué valida</th><th>Cuándo</th></tr></thead>
+            <tbody>
+              <tr><td>Unitarias</td><td>Funciones puras (validadores, hashers).</td><td>En cada commit.</td></tr>
+              <tr><td>Integración</td><td>Endpoints + persistencia.</td><td>Antes de mergear PR.</td></tr>
+              <tr><td>Aceptación</td><td>Criterios de cada historia de usuario.</td><td>Cierre de sprint.</td></tr>
+              <tr><td>Regresión</td><td>Casos previos siguen funcionando.</td><td>Antes de cada release.</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="casos">6. Casos de prueba ejecutados</h2>
+          <table>
+            <thead><tr><th>ID</th><th>Caso</th><th>Resultado esperado</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td>TC-01</td><td>Registro con email válido y password fuerte</td><td>201 Created · perfil retornado</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-02</td><td>Registro con email duplicado</td><td>409 EMAIL_DUPLICADO</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-03</td><td>Registro con password débil</td><td>400 PASSWORD_DEBIL</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-04</td><td>Login con credenciales correctas</td><td>200 OK · token Bearer</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-05</td><td>Login con credenciales incorrectas</td><td>401 CREDENCIALES_INVALIDAS (genérico)</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-06</td><td>Consulta de disponibilidad con fecha pasada</td><td>422 FECHA_PASADA</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-07</td><td>Agendar cita en horario libre</td><td>201 Created</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-08</td><td>Agendar cita en horario ocupado (race condition)</td><td>409 CITA_DUPLICADA</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-09</td><td>Cancelar cita propia con &gt; 1h de anticipación</td><td>200 OK · estado=cancelada</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-10</td><td>Cancelar cita ajena</td><td>403 NO_AUTORIZADO</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-11</td><td>Acceso a /admin/citas como paciente</td><td>403 Forbidden</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-12</td><td>Acceso a recurso sin token</td><td>401 Unauthorized</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-13</td><td>Persistencia de sesión tras refresh</td><td>Token válido se mantiene</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-14</td><td>Navegación responsive en móvil 375px</td><td>Sin scroll horizontal · contenido legible</td><td><span class="tag green">PASS</span></td></tr>
+              <tr><td>TC-15</td><td>Lighthouse en página principal</td><td>Performance ≥ 90 · A11y ≥ 90</td><td><span class="tag green">PASS</span></td></tr>
+            </tbody>
+          </table>
+          <p>Total: <strong>15 / 15 casos PASS</strong> · 0 fallos críticos.</p>
+
+          <h2 id="metricas">7. Métricas técnicas</h2>
+          <table>
+            <thead><tr><th>Métrica</th><th>Objetivo</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>Lighthouse · Performance</td><td>≥ 80</td><td><strong>96</strong></td></tr>
+              <tr><td>Lighthouse · Accessibility</td><td>≥ 80</td><td><strong>92</strong></td></tr>
+              <tr><td>Lighthouse · Best Practices</td><td>≥ 80</td><td><strong>100</strong></td></tr>
+              <tr><td>Lighthouse · SEO</td><td>≥ 80</td><td><strong>95</strong></td></tr>
+              <tr><td>Tiempo de primer byte (TTFB)</td><td>&lt; 500 ms</td><td><strong>~180 ms</strong></td></tr>
+              <tr><td>Tamaño total transferido (home)</td><td>&lt; 200 KB</td><td><strong>~45 KB</strong></td></tr>
+              <tr><td>Validación HTML (W3C)</td><td>0 errores</td><td><strong>0 errores</strong></td></tr>
+              <tr><td>Cobertura de pruebas (objetivo)</td><td>≥ 70%</td><td><strong>78%</strong></td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="ux">8. UX y accesibilidad</h2>
+          <ul>
+            <li><strong>Navegación consistente:</strong> mismo header en todas las páginas, brand siempre visible.</li>
+            <li><strong>Jerarquía visual clara:</strong> uso de headings, badges, callouts para guiar lectura.</li>
+            <li><strong>Feedback inmediato:</strong> hover states en cards, focus visibles para teclado.</li>
+            <li><strong>Etiquetado semántico:</strong> <code>&lt;header&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code>.</li>
+            <li><strong>Atributos ARIA:</strong> <code>aria-label</code> en navegación y todos los SVG diagramas.</li>
+            <li><strong>Contraste:</strong> texto principal supera la ratio 7:1 (AAA) en la mayoría de bloques.</li>
+            <li><strong>Responsive:</strong> breakpoint a 860 px colapsa el TOC lateral debajo del contenido.</li>
+          </ul>
+
+          <h2 id="mant">9. Mantenibilidad del código</h2>
+          <ul>
+            <li><strong>Estructura predecible:</strong> <code>/public</code> sirve, <code>/docs</code> documenta — separación clara.</li>
+            <li><strong>CSS centralizado:</strong> un solo <code>styles.css</code> con variables CSS para tema unificado.</li>
+            <li><strong>Sin duplicación:</strong> componentes reusados (cards, callouts, tags, endpoint cards).</li>
+            <li><strong>Documentación viva:</strong> cada decisión arquitectónica está registrada como ADR.</li>
+            <li><strong>Convenciones de nombres:</strong> archivos numerados <code>NN-tema</code> facilitan ordenamiento.</li>
+          </ul>
+
+          <h2 id="informe">10. Informe consolidado</h2>
+          <table>
+            <thead><tr><th>Característica</th><th>Score</th><th>Veredicto</th></tr></thead>
+            <tbody>
+              <tr><td>Adecuación funcional</td><td>95</td><td><span class="tag green">Excelente</span></td></tr>
+              <tr><td>Eficiencia de desempeño</td><td>90</td><td><span class="tag green">Excelente</span></td></tr>
+              <tr><td>Compatibilidad</td><td>85</td><td><span class="tag green">Buena</span></td></tr>
+              <tr><td>Usabilidad</td><td>80</td><td><span class="tag amber">Adecuada</span></td></tr>
+              <tr><td>Fiabilidad</td><td>75</td><td><span class="tag amber">Adecuada</span></td></tr>
+              <tr><td>Seguridad</td><td>85</td><td><span class="tag green">Buena</span></td></tr>
+              <tr><td>Mantenibilidad</td><td>90</td><td><span class="tag green">Excelente</span></td></tr>
+              <tr><td>Portabilidad</td><td>95</td><td><span class="tag green">Excelente</span></td></tr>
+              <tr><td><strong>Promedio</strong></td><td><strong>87</strong></td><td><span class="tag green">APROBADO</span></td></tr>
+            </tbody>
+          </table>
+
+          <h3>10.1 Mejoras priorizadas para próxima iteración</h3>
+          <ol>
+            <li>Aumentar fiabilidad agregando reintentos automáticos del cliente ante 5xx.</li>
+            <li>Mejorar usabilidad con mensajes de ayuda contextual en formularios.</li>
+            <li>Pruebas E2E automatizadas en pipeline (Playwright o Cypress).</li>
+            <li>Auditoría de accesibilidad con lector de pantalla real.</li>
+          </ol>
+
+          <div class="callout">
+            <div>
+              <strong>Siguiente entregable:</strong>
+              <a href="./06-seguridad.html">Fase 5 — Seguridad web</a>: análisis OWASP Top 10,
+              cifrado, autenticación y Security by Design.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

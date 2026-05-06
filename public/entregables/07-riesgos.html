@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Entregable Fase 6 — Gestión de riesgos: matriz probabilidad × impacto, mitigaciones y riesgos residuales." />
+  <title>Fase 6 · Riesgos · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#proposito">Propósito</a></li>
+            <li><a href="#metodologia">Metodología</a></li>
+            <li><a href="#inventario">Inventario de riesgos</a></li>
+            <li><a href="#matriz">Matriz visual</a></li>
+            <li><a href="#mitigacion">Plan de mitigación</a></li>
+            <li><a href="#residuales">Riesgos residuales</a></li>
+            <li><a href="#monitoreo">Monitoreo y revisión</a></li>
+            <li><a href="#cierre">Cierre</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Fase 6</span> <span class="tag green">Entregable</span></p>
+          <h1>Gestión de riesgos</h1>
+          <div class="doc-meta">
+            Conceptos: Análisis de riesgos · Prevención · Versión 1.0 · Última revisión 2026-05-05
+          </div>
+
+          <h2 id="proposito">1. Propósito</h2>
+          <p>
+            Este documento identifica los riesgos relevantes del sistema, los clasifica por
+            <strong>probabilidad e impacto</strong>, y define el plan de mitigación
+            correspondiente. La gestión de riesgos no elimina la incertidumbre — la vuelve
+            manejable.
+          </p>
+
+          <h2 id="metodologia">2. Metodología</h2>
+          <p>Se aplica una matriz cualitativa <strong>probabilidad × impacto</strong> 5×5:</p>
+          <table>
+            <thead><tr><th>Nivel</th><th>Probabilidad</th><th>Impacto</th></tr></thead>
+            <tbody>
+              <tr><td>Muy Bajo (1)</td><td>Improbable que ocurra (&lt; 5%).</td><td>Sin efecto operativo notable.</td></tr>
+              <tr><td>Bajo (2)</td><td>Poco probable (5-25%).</td><td>Molestia menor, recuperable.</td></tr>
+              <tr><td>Medio (3)</td><td>Posible (25-50%).</td><td>Afecta usuarios; requiere atención.</td></tr>
+              <tr><td>Alto (4)</td><td>Probable (50-75%).</td><td>Indisponibilidad parcial; pérdida de confianza.</td></tr>
+              <tr><td>Muy Alto (5)</td><td>Casi seguro (&gt; 75%).</td><td>Crítico: legal, financiero o reputacional severo.</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Score = Probabilidad + Impacto.</strong> Niveles de tratamiento:</p>
+          <ul>
+            <li><span class="tag green">Bajo</span> Score 0-3 — aceptar y monitorear.</li>
+            <li><span class="tag amber">Medio</span> Score 4-5 — mitigar activamente.</li>
+            <li><span class="tag red">Alto</span> Score 6-8 — mitigación obligatoria + plan de contingencia.</li>
+          </ul>
+
+          <h2 id="inventario">3. Inventario de riesgos</h2>
+          <table>
+            <thead><tr><th>ID</th><th>Riesgo</th><th>Categoría</th><th>Prob.</th><th>Impacto</th><th>Score</th></tr></thead>
+            <tbody>
+              <tr><td><strong>R1</strong></td><td>Doble booking de cita</td><td>Lógica de negocio</td><td>Media</td><td>Alto</td><td>5 · <span class="tag amber">Medio</span></td></tr>
+              <tr><td><strong>R2</strong></td><td>Acceso no autorizado a recursos</td><td>Seguridad</td><td>Baja</td><td>Muy Alto</td><td>5 · <span class="tag amber">Medio</span></td></tr>
+              <tr><td><strong>R3</strong></td><td>Pérdida o corrupción de datos</td><td>Persistencia</td><td>Muy Baja</td><td>Muy Alto</td><td>4 · <span class="tag amber">Medio</span></td></tr>
+              <tr><td><strong>R4</strong></td><td>Indisponibilidad de GitLab Pages</td><td>Infraestructura</td><td>Muy Baja</td><td>Alto</td><td>3 · <span class="tag green">Bajo</span></td></tr>
+              <tr><td><strong>R5</strong></td><td>Vulnerabilidad en dependencias</td><td>Seguridad</td><td>Media</td><td>Medio</td><td>4 · <span class="tag amber">Medio</span></td></tr>
+              <tr><td><strong>R6</strong></td><td>Errores humanos del staff</td><td>Operativo</td><td>Alta</td><td>Bajo</td><td>4 · <span class="tag amber">Medio</span></td></tr>
+              <tr><td><strong>R7</strong></td><td>Inyección o XSS</td><td>Seguridad</td><td>Baja</td><td>Alto</td><td>4 · <span class="tag amber">Medio</span></td></tr>
+              <tr><td><strong>R8</strong></td><td>Spam/abuso de registros</td><td>Operativo</td><td>Media</td><td>Bajo</td><td>3 · <span class="tag green">Bajo</span></td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="matriz">4. Matriz visual de riesgos</h2>
+
+          <svg class="svg-diagram" viewBox="0 0 760 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Matriz de riesgos 5x5 con 8 riesgos posicionados.">
+            <defs>
+              <filter id="risShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <style>
+              .ris-cell{stroke:#fff;stroke-width:2}
+              .ris-axis-label{font:700 12px -apple-system,sans-serif;text-anchor:middle;letter-spacing:.1em;fill:#0f172a}
+              .ris-tick{font:11px -apple-system,sans-serif;fill:#475569}
+              .ris-risk{stroke:#fff;stroke-width:2}
+              .ris-risk-text{fill:#fff;font:700 11px -apple-system,sans-serif;text-anchor:middle}
+              .ris-leg-text{font:11px -apple-system,sans-serif;fill:#475569}
+            </style>
+            <rect width="760" height="580" rx="12" fill="#f8fafc"/>
+
+            <text x="380" y="36" font="700 16px -apple-system,sans-serif" fill="#0f172a" text-anchor="middle">Matriz de riesgos · Probabilidad × Impacto</text>
+
+            <!-- Y axis label (Impacto) rotated -->
+            <text x="40" y="250" transform="rotate(-90,40,250)" class="ris-axis-label">IMPACTO</text>
+
+            <!-- X axis label (Probabilidad) -->
+            <text x="385" y="475" class="ris-axis-label">PROBABILIDAD</text>
+
+            <!-- Y ticks (impact) -->
+            <text x="140" y="134" class="ris-tick" text-anchor="end">Muy Alto</text>
+            <text x="140" y="194" class="ris-tick" text-anchor="end">Alto</text>
+            <text x="140" y="254" class="ris-tick" text-anchor="end">Medio</text>
+            <text x="140" y="314" class="ris-tick" text-anchor="end">Bajo</text>
+            <text x="140" y="374" class="ris-tick" text-anchor="end">Muy Bajo</text>
+
+            <!-- X ticks (prob) -->
+            <text x="205" y="430" class="ris-tick" text-anchor="middle">Muy Baja</text>
+            <text x="295" y="430" class="ris-tick" text-anchor="middle">Baja</text>
+            <text x="385" y="430" class="ris-tick" text-anchor="middle">Media</text>
+            <text x="475" y="430" class="ris-tick" text-anchor="middle">Alta</text>
+            <text x="565" y="430" class="ris-tick" text-anchor="middle">Muy Alta</text>
+
+            <!-- Grid 5x5 (cells colored by score = (4-row)+col) -->
+            <!-- Row 0 (top, Muy Alto) -->
+            <rect class="ris-cell" x="160" y="100" width="90" height="60" fill="#fed7aa"/>
+            <rect class="ris-cell" x="250" y="100" width="90" height="60" fill="#fca5a5"/>
+            <rect class="ris-cell" x="340" y="100" width="90" height="60" fill="#fca5a5"/>
+            <rect class="ris-cell" x="430" y="100" width="90" height="60" fill="#f87171"/>
+            <rect class="ris-cell" x="520" y="100" width="90" height="60" fill="#ef4444"/>
+            <!-- Row 1 (Alto) -->
+            <rect class="ris-cell" x="160" y="160" width="90" height="60" fill="#fef3c7"/>
+            <rect class="ris-cell" x="250" y="160" width="90" height="60" fill="#fed7aa"/>
+            <rect class="ris-cell" x="340" y="160" width="90" height="60" fill="#fca5a5"/>
+            <rect class="ris-cell" x="430" y="160" width="90" height="60" fill="#fca5a5"/>
+            <rect class="ris-cell" x="520" y="160" width="90" height="60" fill="#f87171"/>
+            <!-- Row 2 (Medio) -->
+            <rect class="ris-cell" x="160" y="220" width="90" height="60" fill="#dcfce7"/>
+            <rect class="ris-cell" x="250" y="220" width="90" height="60" fill="#fef3c7"/>
+            <rect class="ris-cell" x="340" y="220" width="90" height="60" fill="#fed7aa"/>
+            <rect class="ris-cell" x="430" y="220" width="90" height="60" fill="#fca5a5"/>
+            <rect class="ris-cell" x="520" y="220" width="90" height="60" fill="#fca5a5"/>
+            <!-- Row 3 (Bajo) -->
+            <rect class="ris-cell" x="160" y="280" width="90" height="60" fill="#bbf7d0"/>
+            <rect class="ris-cell" x="250" y="280" width="90" height="60" fill="#dcfce7"/>
+            <rect class="ris-cell" x="340" y="280" width="90" height="60" fill="#fef3c7"/>
+            <rect class="ris-cell" x="430" y="280" width="90" height="60" fill="#fed7aa"/>
+            <rect class="ris-cell" x="520" y="280" width="90" height="60" fill="#fca5a5"/>
+            <!-- Row 4 (Muy Bajo, bottom) -->
+            <rect class="ris-cell" x="160" y="340" width="90" height="60" fill="#bbf7d0"/>
+            <rect class="ris-cell" x="250" y="340" width="90" height="60" fill="#bbf7d0"/>
+            <rect class="ris-cell" x="340" y="340" width="90" height="60" fill="#dcfce7"/>
+            <rect class="ris-cell" x="430" y="340" width="90" height="60" fill="#fef3c7"/>
+            <rect class="ris-cell" x="520" y="340" width="90" height="60" fill="#fed7aa"/>
+
+            <!-- Risks placed as circles -->
+            <!-- R3 at (0,0): Muy Baja prob, Muy Alto imp → cell center (205, 130) -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="205" cy="130" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="205" y="135">R3</text>
+            </g>
+            <!-- R2 at (0,1) -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="295" cy="130" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="295" y="135">R2</text>
+            </g>
+            <!-- R4 at (1,0): Muy Baja, Alto -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="205" cy="190" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="205" y="195">R4</text>
+            </g>
+            <!-- R7 at (1,1): Baja, Alto -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="295" cy="190" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="295" y="195">R7</text>
+            </g>
+            <!-- R1 at (1,2): Media, Alto -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="385" cy="190" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="385" y="195">R1</text>
+            </g>
+            <!-- R5 at (2,2): Media, Medio -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="385" cy="250" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="385" y="255">R5</text>
+            </g>
+            <!-- R8 at (3,2): Media, Bajo -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="385" cy="310" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="385" y="315">R8</text>
+            </g>
+            <!-- R6 at (3,3): Alta, Bajo -->
+            <g filter="url(#risShadow)">
+              <circle class="ris-risk" cx="475" cy="310" r="16" fill="#0a3270"/>
+              <text class="ris-risk-text" x="475" y="315">R6</text>
+            </g>
+
+            <!-- Legend (bottom) -->
+            <g transform="translate(160,510)">
+              <rect width="20" height="14" fill="#bbf7d0" rx="3"/>
+              <text class="ris-leg-text" x="28" y="11">Aceptable (0-2)</text>
+
+              <rect x="130" width="20" height="14" fill="#fef3c7" rx="3"/>
+              <text class="ris-leg-text" x="158" y="11">Tolerable (3-4)</text>
+
+              <rect x="260" width="20" height="14" fill="#fed7aa" rx="3"/>
+              <text class="ris-leg-text" x="288" y="11">Atención (5)</text>
+
+              <rect x="370" width="20" height="14" fill="#fca5a5" rx="3"/>
+              <text class="ris-leg-text" x="398" y="11">Alto (6-7)</text>
+
+              <rect x="450" width="20" height="14" fill="#ef4444" rx="3"/>
+              <text class="ris-leg-text" x="478" y="11">Crítico (8)</text>
+            </g>
+          </svg>
+          <span class="svg-caption">Figura 1. Matriz de riesgos — 8 riesgos identificados, ninguno en zona crítica gracias a las mitigaciones.</span>
+
+          <h2 id="mitigacion">5. Plan de mitigación</h2>
+
+          <h3>R1 · Doble booking de cita</h3>
+          <ul>
+            <li><strong>Causa:</strong> dos clientes intentan reservar el mismo slot simultáneamente.</li>
+            <li><strong>Mitigación:</strong> restricción única <code>(medico_id, fecha_hora)</code> en BD + transacción atómica.</li>
+            <li><strong>Contingencia:</strong> si ocurre, el segundo recibe <code>409</code> y se le ofrecen slots alternativos.</li>
+          </ul>
+
+          <h3>R2 · Acceso no autorizado a recursos</h3>
+          <ul>
+            <li><strong>Causa:</strong> falla en validación de rol o de propiedad del recurso.</li>
+            <li><strong>Mitigación:</strong> middleware de autorización en cada endpoint + tests automatizados de RBAC.</li>
+            <li><strong>Contingencia:</strong> revocar tokens, rotar claves, auditar acceso retroactivamente.</li>
+          </ul>
+
+          <h3>R3 · Pérdida o corrupción de datos</h3>
+          <ul>
+            <li><strong>Causa:</strong> error humano, fallo de hardware, ataque destructivo.</li>
+            <li><strong>Mitigación:</strong> backups diarios automáticos + retención de 30 días.</li>
+            <li><strong>Contingencia:</strong> procedimiento de restauración documentado y probado trimestralmente.</li>
+          </ul>
+
+          <h3>R4 · Indisponibilidad de GitLab Pages</h3>
+          <ul>
+            <li><strong>Causa:</strong> caída del proveedor, mantenimiento extenso.</li>
+            <li><strong>Mitigación:</strong> el código vive en el repo (Git distribuido); el sitio puede republicarse en otro host estático.</li>
+            <li><strong>Contingencia:</strong> deploy alternativo a Netlify o GitHub Pages (mismo <code>public/</code>).</li>
+          </ul>
+
+          <h3>R5 · Vulnerabilidad en dependencias</h3>
+          <ul>
+            <li><strong>Causa:</strong> CVE descubierto en una librería usada.</li>
+            <li><strong>Mitigación:</strong> minimización de dependencias, revisión periódica con <code>npm audit</code> / GitLab dependency scanner.</li>
+            <li><strong>Contingencia:</strong> actualización inmediata o reemplazo.</li>
+          </ul>
+
+          <h3>R6 · Errores humanos del staff</h3>
+          <ul>
+            <li><strong>Causa:</strong> personal cancela cita equivocada o registra mal un médico.</li>
+            <li><strong>Mitigación:</strong> confirmaciones en acciones destructivas, log de auditoría, undo limitado.</li>
+            <li><strong>Contingencia:</strong> reversión asistida desde auditoría.</li>
+          </ul>
+
+          <h3>R7 · Inyección o XSS</h3>
+          <ul>
+            <li><strong>Causa:</strong> input no sanitizado renderizado o ejecutado.</li>
+            <li><strong>Mitigación:</strong> queries parametrizadas, escapado de salida, CSP estricta.</li>
+            <li><strong>Contingencia:</strong> bloqueo de IPs maliciosas, parche y auditoría completa.</li>
+          </ul>
+
+          <h3>R8 · Spam o abuso de registros</h3>
+          <ul>
+            <li><strong>Causa:</strong> bots crean cuentas masivamente.</li>
+            <li><strong>Mitigación:</strong> rate limiting + verificación de email (futuro).</li>
+            <li><strong>Contingencia:</strong> limpieza periódica de cuentas inactivas/sospechosas.</li>
+          </ul>
+
+          <h2 id="residuales">6. Riesgos residuales</h2>
+          <p>
+            Tras aplicar las mitigaciones, ningún riesgo queda en zona crítica. Los riesgos
+            residuales más altos son los <strong>medianos</strong> (R1, R2, R3, R5, R6, R7),
+            que requieren monitoreo continuo pero son aceptables para el alcance del sistema.
+          </p>
+          <table>
+            <thead><tr><th>ID</th><th>Antes de mitigar</th><th>Después de mitigar</th><th>Tendencia</th></tr></thead>
+            <tbody>
+              <tr><td>R1</td><td>Score 6 (Alto)</td><td>Score 5 (Medio)</td><td>↓</td></tr>
+              <tr><td>R2</td><td>Score 7 (Alto)</td><td>Score 5 (Medio)</td><td>↓↓</td></tr>
+              <tr><td>R3</td><td>Score 6 (Alto)</td><td>Score 4 (Medio)</td><td>↓↓</td></tr>
+              <tr><td>R7</td><td>Score 6 (Alto)</td><td>Score 4 (Medio)</td><td>↓↓</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="monitoreo">7. Monitoreo y revisión</h2>
+          <ul>
+            <li><strong>Revisión trimestral</strong> de la matriz de riesgos.</li>
+            <li><strong>Revisión inmediata</strong> ante cualquier incidente o cambio mayor del sistema.</li>
+            <li><strong>Indicadores de monitoreo:</strong> pipeline failures, tasa de errores 4xx/5xx, intentos de login fallidos, uso de endpoints admin.</li>
+            <li><strong>Owner de cada riesgo:</strong> el rol responsable de actuar (técnico, operativo, administrativo).</li>
+          </ul>
+
+          <h2 id="cierre">8. Cierre</h2>
+          <p>
+            La matriz de riesgos cumple su función cuando se actualiza con la realidad
+            operativa. Es un documento <strong>vivo</strong>, no un trámite. Cada incidente
+            real debe traducirse en una entrada o un ajuste en este documento.
+          </p>
+
+          <div class="callout">
+            <div>
+              <strong>Siguiente entregable:</strong>
+              <a href="./08-evaluacion.html">Fase 7 — Evaluación final</a>: checklist consolidado y validación contra los requisitos del docente.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

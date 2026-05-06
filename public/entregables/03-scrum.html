@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Entregable Fase 2 — Metodología Scrum, sprints, historias de usuario y estrategia Git." />
+  <title>Fase 2 · Scrum + Git · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav" aria-label="Navegación principal">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#proposito">Propósito</a></li>
+            <li><a href="#marco">Marco Scrum</a></li>
+            <li><a href="#roles">Roles del equipo</a></li>
+            <li><a href="#eventos">Eventos Scrum</a></li>
+            <li><a href="#dor-dod">DoR / DoD</a></li>
+            <li><a href="#backlog">Backlog del producto</a></li>
+            <li><a href="#git">Estrategia Git</a></li>
+            <li><a href="#sprint1">Sprint 1 · Autenticación</a></li>
+            <li><a href="#sprint2">Sprint 2 · Agendamiento</a></li>
+            <li><a href="#sprint3">Sprint 3 · Panel admin</a></li>
+            <li><a href="#kanban">Tablero Kanban</a></li>
+            <li><a href="#cierre">Métricas y cierre</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Fase 2</span> <span class="tag green">Entregable</span></p>
+          <h1>Scrum + Git · Gestión del desarrollo</h1>
+          <div class="doc-meta">
+            Conceptos: Scrum · Sprints · Historias de usuario · Git · Branching · Versión 1.0 · Última revisión 2026-05-05
+          </div>
+
+          <!-- 1 -->
+          <h2 id="proposito">1. Propósito</h2>
+          <p>
+            Este documento describe <strong>cómo se gestionó el desarrollo</strong> del sistema:
+            la metodología ágil aplicada, el flujo de trabajo del equipo, la estrategia de
+            ramas en Git y el detalle de cada uno de los tres sprints ejecutados.
+          </p>
+          <blockquote>
+            Scrum no es solo "trabajar por sprints". Es una disciplina que vuelve <em>visible</em>
+            el progreso, <em>predecible</em> la entrega y <em>adaptable</em> el alcance.
+          </blockquote>
+
+          <!-- 2 -->
+          <h2 id="marco">2. Marco Scrum aplicado</h2>
+          <p>El equipo trabajó con sprints de <strong>2 semanas</strong>, totalizando 6 semanas de desarrollo.</p>
+
+          <svg class="svg-diagram" viewBox="0 0 920 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Marco Scrum: backlog, sprint con eventos internos e incremento.">
+            <defs>
+              <linearGradient id="scrSprint" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1565d8"/><stop offset="100%" stop-color="#0a3270"/>
+              </linearGradient>
+              <marker id="scrArrow" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#0f172a"/>
+              </marker>
+              <marker id="scrArrowLoop" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
+              </marker>
+              <filter id="scrShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+              </filter>
+            </defs>
+            <style>
+              .scr-card{fill:#fef9c3;stroke:#a16207;stroke-width:1.2}
+              .scr-stack-title{font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;fill:#0f172a}
+              .scr-stack-tag{font:700 10px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;letter-spacing:.1em}
+              .scr-sprint{fill:url(#scrSprint);stroke:#0a3270;stroke-width:1.8}
+              .scr-sprint-title{fill:#fff;font:700 16px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .scr-sprint-sub{fill:#cbd5e1;font:11px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .scr-event{fill:#fff;stroke:#1e3a8a;stroke-width:1.2;rx:6}
+              .scr-event-text{fill:#0f172a;font:600 11px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .scr-event-time{fill:#64748b;font:9px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;font-style:italic}
+              .scr-inc{fill:#dcfce7;stroke:#166534;stroke-width:1.5}
+              .scr-inc-title{fill:#166534;font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .scr-arrow-label{fill:#0f172a;font:600 11px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+            </style>
+            <rect width="920" height="500" rx="12" fill="#f8fafc"/>
+
+            <!-- Product Backlog (left) -->
+            <g filter="url(#scrShadow)">
+              <text class="scr-stack-tag" x="120" y="80" fill="#a16207">PRODUCT BACKLOG</text>
+              <rect class="scr-card" x="55" y="100" width="130" height="22" rx="4"/>
+              <rect class="scr-card" x="50" y="128" width="140" height="22" rx="4"/>
+              <rect class="scr-card" x="45" y="156" width="150" height="22" rx="4"/>
+              <rect class="scr-card" x="50" y="184" width="140" height="22" rx="4"/>
+              <rect class="scr-card" x="55" y="212" width="130" height="22" rx="4"/>
+              <text class="scr-stack-title" x="120" y="115" font-size="10">HU-01 · Registro</text>
+              <text class="scr-stack-title" x="120" y="143" font-size="10">HU-02 · Login</text>
+              <text class="scr-stack-title" x="120" y="171" font-size="10">HU-05 · Disponibilidad</text>
+              <text class="scr-stack-title" x="120" y="199" font-size="10">HU-07 · Agendar</text>
+              <text class="scr-stack-title" x="120" y="227" font-size="10">HU-10 · Admin</text>
+              <text x="120" y="252" font="italic 10px -apple-system,sans-serif" fill="#64748b" text-anchor="middle">+ historias por priorizar</text>
+            </g>
+
+            <!-- Sprint Backlog (small, between) -->
+            <g filter="url(#scrShadow)">
+              <text class="scr-stack-tag" x="320" y="80" fill="#0f766e">SPRINT BACKLOG</text>
+              <rect x="280" y="100" width="80" height="18" rx="4" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.2"/>
+              <rect x="280" y="124" width="80" height="18" rx="4" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.2"/>
+              <rect x="280" y="148" width="80" height="18" rx="4" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.2"/>
+              <text x="320" y="113" font-size="9" fill="#0f172a" text-anchor="middle" font-weight="600">selección</text>
+              <text x="320" y="137" font-size="9" fill="#0f172a" text-anchor="middle" font-weight="600">comprometida</text>
+              <text x="320" y="161" font-size="9" fill="#0f172a" text-anchor="middle" font-weight="600">para el sprint</text>
+            </g>
+
+            <!-- Sprint container (center, big) -->
+            <g filter="url(#scrShadow)">
+              <rect class="scr-sprint" x="400" y="55" width="380" height="260" rx="14"/>
+              <text class="scr-sprint-title" x="590" y="82">SPRINT</text>
+              <text class="scr-sprint-sub" x="590" y="100">Timebox · 2 semanas</text>
+
+              <!-- 4 events inside -->
+              <rect class="scr-event" x="425" y="120" width="155" height="58" rx="8"/>
+              <text class="scr-event-text" x="502" y="142">Sprint Planning</text>
+              <text class="scr-event-time" x="502" y="158">al inicio · 4h</text>
+
+              <rect class="scr-event" x="600" y="120" width="155" height="58" rx="8"/>
+              <text class="scr-event-text" x="677" y="142">Daily Scrum</text>
+              <text class="scr-event-time" x="677" y="158">cada día · 15 min</text>
+
+              <rect class="scr-event" x="425" y="195" width="155" height="58" rx="8"/>
+              <text class="scr-event-text" x="502" y="217">Sprint Review</text>
+              <text class="scr-event-time" x="502" y="233">al cierre · 2h</text>
+
+              <rect class="scr-event" x="600" y="195" width="155" height="58" rx="8"/>
+              <text class="scr-event-text" x="677" y="217">Sprint Retrospective</text>
+              <text class="scr-event-time" x="677" y="233">al cierre · 1h</text>
+
+              <text class="scr-sprint-sub" x="590" y="290">3 sprints completos = 6 semanas de desarrollo</text>
+            </g>
+
+            <!-- Increment (right, bottom) -->
+            <g filter="url(#scrShadow)">
+              <text class="scr-stack-tag" x="855" y="80" fill="#166534">INCREMENT</text>
+              <rect class="scr-inc" x="800" y="95" width="110" height="80" rx="10"/>
+              <text class="scr-inc-title" x="855" y="125">Producto</text>
+              <text class="scr-inc-title" x="855" y="143">funcional</text>
+              <text x="855" y="162" font="10px -apple-system,sans-serif" fill="#166534" text-anchor="middle">listo para release</text>
+            </g>
+
+            <!-- Arrows -->
+            <path d="M 200,160 L 275,160" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#scrArrow)"/>
+            <text class="scr-arrow-label" x="237" y="152">selección</text>
+
+            <path d="M 365,160 L 395,160" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#scrArrow)"/>
+
+            <path d="M 785,135 L 798,135" stroke="#0f172a" stroke-width="2" fill="none" marker-end="url(#scrArrow)"/>
+
+            <!-- Loop back from Increment to Backlog -->
+            <path d="M 855,180 Q 855,420 460,420 Q 120,420 120,260" stroke="#0f766e" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#scrArrowLoop)"/>
+            <text x="490" y="445" font="italic 12px -apple-system,sans-serif" fill="#0f766e" text-anchor="middle">refinamiento continuo del backlog · feedback del increment</text>
+          </svg>
+          <span class="svg-caption">Figura 1. Marco Scrum aplicado: artefactos, eventos y ciclo de retroalimentación.</span>
+
+          <!-- 3 -->
+          <h2 id="roles">3. Roles del equipo</h2>
+          <table>
+            <thead><tr><th>Rol</th><th>Responsabilidad</th><th>En este proyecto</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Product Owner</strong></td>
+                <td>Definir y priorizar el Product Backlog. Maximizar el valor del producto.</td>
+                <td>Mantiene el listado de historias y decide el orden por valor académico.</td>
+              </tr>
+              <tr>
+                <td><strong>Scrum Master</strong></td>
+                <td>Facilitar los eventos Scrum, eliminar impedimentos, coachear al equipo.</td>
+                <td>Modera plannings y retros, asegura cumplimiento de la DoD.</td>
+              </tr>
+              <tr>
+                <td><strong>Development Team</strong></td>
+                <td>Construir el incremento. Auto-organizado y multidisciplinario.</td>
+                <td>Implementa frontend, backend, pruebas y documentación.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- 4 -->
+          <h2 id="eventos">4. Eventos Scrum</h2>
+          <table>
+            <thead><tr><th>Evento</th><th>Cuándo</th><th>Duración</th><th>Objetivo</th></tr></thead>
+            <tbody>
+              <tr><td>Sprint Planning</td><td>Inicio del sprint</td><td>~4 h</td><td>Seleccionar historias y planificar el trabajo.</td></tr>
+              <tr><td>Daily Scrum</td><td>Cada día</td><td>15 min</td><td>Sincronización: ¿qué hice, qué haré, qué me bloquea?</td></tr>
+              <tr><td>Sprint Review</td><td>Cierre del sprint</td><td>~2 h</td><td>Demostrar el incremento y obtener feedback.</td></tr>
+              <tr><td>Sprint Retrospective</td><td>Tras el Review</td><td>~1 h</td><td>Inspeccionar el proceso y proponer mejoras.</td></tr>
+            </tbody>
+          </table>
+
+          <!-- 5 -->
+          <h2 id="dor-dod">5. Definition of Ready y Definition of Done</h2>
+
+          <h3>5.1 Definition of Ready (DoR)</h3>
+          <p>Una historia está <strong>lista</strong> para entrar a un sprint cuando:</p>
+          <ul>
+            <li>Tiene narrativa <em>"Como X, quiero Y, para Z"</em>.</li>
+            <li>Tiene criterios de aceptación verificables.</li>
+            <li>Está estimada en story points por el equipo.</li>
+            <li>Las dependencias técnicas están identificadas.</li>
+            <li>El diseño UX (si aplica) está acordado.</li>
+          </ul>
+
+          <h3>5.2 Definition of Done (DoD)</h3>
+          <p>Una historia está <strong>terminada</strong> cuando se cumplen <em>todos</em> los siguientes criterios:</p>
+          <ul>
+            <li>El código está en <code>main</code> tras una pull request revisada por al menos 1 par.</li>
+            <li>Las pruebas funcionales pasan localmente y en CI.</li>
+            <li>Los criterios de aceptación de la historia están verificados.</li>
+            <li>La documentación afectada está actualizada.</li>
+            <li>El sitio se desplegó correctamente en GitLab Pages.</li>
+            <li>No hay regresiones detectadas en historias previas.</li>
+          </ul>
+
+          <!-- 6 -->
+          <h2 id="backlog">6. Backlog del producto</h2>
+          <p>Backlog completo agrupado por épica. La priorización refleja la dependencia técnica (auth → citas → admin):</p>
+          <table>
+            <thead><tr><th>Épica</th><th>Historias</th><th>Sprint</th></tr></thead>
+            <tbody>
+              <tr><td>E1 · Autenticación y usuarios</td><td>HU-01 · HU-02 · HU-03 · HU-04</td><td>Sprint 1</td></tr>
+              <tr><td>E2 · Agendamiento de citas</td><td>HU-05 · HU-06 · HU-07 · HU-08 · HU-09</td><td>Sprint 2</td></tr>
+              <tr><td>E3 · Panel administrativo</td><td>HU-10 · HU-11 · HU-12 · HU-13 · HU-14</td><td>Sprint 3</td></tr>
+            </tbody>
+          </table>
+
+          <!-- 7 -->
+          <h2 id="git">7. Estrategia Git</h2>
+          <p>
+            Se adoptó un flujo simple basado en <strong>trunk-based</strong> con ramas
+            cortas por historia, optimizado para CI/CD continuo a GitLab Pages.
+          </p>
+
+          <svg class="svg-diagram" viewBox="0 0 920 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Estrategia Git: rama main con ramas feature por historia y tags por sprint.">
+            <defs>
+              <filter id="gitShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.18"/>
+              </filter>
+            </defs>
+            <style>
+              .git-axis{stroke:#cbd5e1;stroke-width:1}
+              .git-main{stroke:#0a3270;stroke-width:3}
+              .git-feat-1{stroke:#c2410c;stroke-width:2}
+              .git-feat-2{stroke:#1d4ed8;stroke-width:2}
+              .git-feat-3{stroke:#15803d;stroke-width:2}
+              .git-commit{fill:#fff;stroke:#0a3270;stroke-width:2}
+              .git-commit-feat{fill:#fff;stroke-width:2}
+              .git-merge{fill:#0a3270}
+              .git-tag{fill:#fef3c7;stroke:#a16207;stroke-width:1.2}
+              .git-tag-text{font:700 11px "SF Mono",Consolas,monospace;fill:#92400e;text-anchor:middle}
+              .git-label{font:600 11px -apple-system,"Segoe UI",sans-serif;fill:#0f172a}
+              .git-label-feat{font:600 10px "SF Mono",Consolas,monospace;text-anchor:middle}
+              .git-sprint-bg{fill-opacity:.08}
+              .git-sprint-label{font:700 11px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;letter-spacing:.08em}
+            </style>
+            <rect width="920" height="460" rx="12" fill="#f8fafc"/>
+
+            <!-- Sprint backgrounds -->
+            <rect class="git-sprint-bg" x="60" y="40" width="270" height="380" rx="10" fill="#c2410c"/>
+            <rect class="git-sprint-bg" x="340" y="40" width="270" height="380" rx="10" fill="#1d4ed8"/>
+            <rect class="git-sprint-bg" x="620" y="40" width="240" height="380" rx="10" fill="#15803d"/>
+            <text class="git-sprint-label" x="195" y="62" fill="#c2410c">SPRINT 1 · auth</text>
+            <text class="git-sprint-label" x="475" y="62" fill="#1d4ed8">SPRINT 2 · citas</text>
+            <text class="git-sprint-label" x="740" y="62" fill="#15803d">SPRINT 3 · admin</text>
+
+            <!-- Main branch -->
+            <line class="git-main" x1="60" y1="120" x2="870" y2="120"/>
+            <text class="git-label" x="20" y="124" fill="#0a3270">main</text>
+
+            <!-- Sprint 1 features -->
+            <path class="git-feat-1" d="M 100,120 L 110,180 L 200,180 L 210,120" fill="none"/>
+            <circle class="git-commit" cx="100" cy="120" r="6"/>
+            <circle class="git-commit-feat" cx="130" cy="180" r="5" stroke="#c2410c"/>
+            <circle class="git-commit-feat" cx="170" cy="180" r="5" stroke="#c2410c"/>
+            <circle class="git-merge" cx="210" cy="120" r="6"/>
+            <text class="git-label-feat" x="155" y="200" fill="#c2410c">feat/auth-register</text>
+
+            <path class="git-feat-1" d="M 230,120 L 240,210 L 300,210 L 310,120" fill="none"/>
+            <circle class="git-commit-feat" cx="260" cy="210" r="5" stroke="#c2410c"/>
+            <circle class="git-commit-feat" cx="285" cy="210" r="5" stroke="#c2410c"/>
+            <circle class="git-merge" cx="310" cy="120" r="6"/>
+            <text class="git-label-feat" x="270" y="230" fill="#c2410c">feat/auth-login</text>
+
+            <!-- Tag v0.1 -->
+            <rect class="git-tag" x="298" y="80" width="42" height="22" rx="4"/>
+            <text class="git-tag-text" x="319" y="95">v0.1</text>
+            <line x1="319" y1="102" x2="319" y2="115" stroke="#a16207" stroke-width="1"/>
+
+            <!-- Sprint 2 features -->
+            <path class="git-feat-2" d="M 360,120 L 370,180 L 450,180 L 460,120" fill="none"/>
+            <circle class="git-commit-feat" cx="395" cy="180" r="5" stroke="#1d4ed8"/>
+            <circle class="git-commit-feat" cx="425" cy="180" r="5" stroke="#1d4ed8"/>
+            <circle class="git-merge" cx="460" cy="120" r="6"/>
+            <text class="git-label-feat" x="412" y="200" fill="#1d4ed8">feat/disponibilidad</text>
+
+            <path class="git-feat-2" d="M 480,120 L 490,210 L 555,210 L 565,120" fill="none"/>
+            <circle class="git-commit-feat" cx="515" cy="210" r="5" stroke="#1d4ed8"/>
+            <circle class="git-commit-feat" cx="540" cy="210" r="5" stroke="#1d4ed8"/>
+            <circle class="git-merge" cx="565" cy="120" r="6"/>
+            <text class="git-label-feat" x="525" y="230" fill="#1d4ed8">feat/agendar-cita</text>
+
+            <!-- Tag v0.2 -->
+            <rect class="git-tag" x="568" y="80" width="42" height="22" rx="4"/>
+            <text class="git-tag-text" x="589" y="95">v0.2</text>
+            <line x1="589" y1="102" x2="589" y2="115" stroke="#a16207" stroke-width="1"/>
+
+            <!-- Sprint 3 features -->
+            <path class="git-feat-3" d="M 640,120 L 650,180 L 720,180 L 730,120" fill="none"/>
+            <circle class="git-commit-feat" cx="675" cy="180" r="5" stroke="#15803d"/>
+            <circle class="git-commit-feat" cx="700" cy="180" r="5" stroke="#15803d"/>
+            <circle class="git-merge" cx="730" cy="120" r="6"/>
+            <text class="git-label-feat" x="685" y="200" fill="#15803d">feat/admin-medicos</text>
+
+            <path class="git-feat-3" d="M 750,120 L 760,210 L 820,210 L 830,120" fill="none"/>
+            <circle class="git-commit-feat" cx="785" cy="210" r="5" stroke="#15803d"/>
+            <circle class="git-commit-feat" cx="810" cy="210" r="5" stroke="#15803d"/>
+            <circle class="git-merge" cx="830" cy="120" r="6"/>
+            <text class="git-label-feat" x="795" y="230" fill="#15803d">feat/admin-reportes</text>
+
+            <!-- Tag v0.3 -->
+            <rect class="git-tag" x="833" y="80" width="42" height="22" rx="4"/>
+            <text class="git-tag-text" x="854" y="95">v0.3</text>
+            <line x1="854" y1="102" x2="854" y2="115" stroke="#a16207" stroke-width="1"/>
+
+            <!-- Convention notes (bottom) -->
+            <g transform="translate(60,290)">
+              <rect width="800" height="115" rx="10" fill="#fff" stroke="#cbd5e1"/>
+              <text x="20" y="28" font="700 12px -apple-system,sans-serif" fill="#0f172a">Convenciones</text>
+              <text x="20" y="52" font="12px 'SF Mono',Consolas,monospace" fill="#1d4ed8">feat:</text>
+              <text x="80" y="52" font="12px -apple-system,sans-serif" fill="#475569">nueva funcionalidad · ej. <tspan font-family="'SF Mono',Consolas,monospace" fill="#0a3270">feat(auth): hash de contraseña con bcrypt</tspan></text>
+              <text x="20" y="74" font="12px 'SF Mono',Consolas,monospace" fill="#15803d">fix:</text>
+              <text x="80" y="74" font="12px -apple-system,sans-serif" fill="#475569">corrección de bug · ej. <tspan font-family="'SF Mono',Consolas,monospace" fill="#0a3270">fix(citas): valida fecha pasada</tspan></text>
+              <text x="20" y="96" font="12px 'SF Mono',Consolas,monospace" fill="#b45309">docs:</text>
+              <text x="80" y="96" font="12px -apple-system,sans-serif" fill="#475569">cambios en documentación · ej. <tspan font-family="'SF Mono',Consolas,monospace" fill="#0a3270">docs(api): especifica errores 4xx</tspan></text>
+            </g>
+          </svg>
+          <span class="svg-caption">Figura 2. Estrategia Git — ramas <code>feat/*</code> por historia, merge a <code>main</code>, tags por sprint.</span>
+
+          <h3>7.1 Reglas del flujo Git</h3>
+          <ul>
+            <li><strong><code>main</code> es siempre desplegable.</strong> Cada merge dispara CI/CD a GitLab Pages.</li>
+            <li><strong>Ramas cortas</strong> con prefijo <code>feat/</code>, <code>fix/</code>, <code>docs/</code>, <code>chore/</code>.</li>
+            <li><strong>Pull requests</strong> con al menos 1 revisor antes de mergear.</li>
+            <li><strong>Commits convencionales</strong> (Conventional Commits): <code>tipo(scope): mensaje</code>.</li>
+            <li><strong>Tags semánticos</strong> al final de cada sprint: <code>v0.1</code>, <code>v0.2</code>, <code>v0.3</code>.</li>
+            <li><strong>Sin force-push a main.</strong> Las ramas feature pueden rebase mientras no estén compartidas.</li>
+          </ul>
+
+          <!-- ===================== SPRINT 1 ===================== -->
+          <h2 id="sprint1">8. Sprint 1 · Autenticación</h2>
+          <div class="sprint-header">
+            <h3>Sprint 1</h3>
+            <div class="sprint-meta">
+              <span>📅 25 mar — 7 abr 2026</span>
+              <span>⏱ 2 semanas</span>
+              <span>🎯 12 SP</span>
+            </div>
+          </div>
+          <div class="sprint-goal">
+            <span class="sprint-goal-label">Sprint Goal</span>
+            Permitir que un paciente cree una cuenta e inicie sesión de forma segura.
+          </div>
+
+          <div class="sprint-summary">
+            <div class="stat"><span class="num">4</span><span class="lbl">Historias</span></div>
+            <div class="stat"><span class="num">12</span><span class="lbl">Story Points</span></div>
+            <div class="stat"><span class="num">2</span><span class="lbl">Endpoints</span></div>
+            <div class="stat"><span class="num">100%</span><span class="lbl">Completadas</span></div>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-01</span>
+              <span class="story-points">3 SP</span>
+              <span class="story-status done">Hecho</span>
+            </div>
+            <h4>Registro de paciente</h4>
+            <p class="story-narrative">Como paciente nuevo, quiero crear una cuenta con mi email y una contraseña, para poder usar el sistema y agendar citas.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>El formulario valida email con formato correcto.</li>
+              <li>La contraseña debe tener al menos 8 caracteres con número y mayúscula.</li>
+              <li>Si el email ya existe, devuelve <code>409 EMAIL_DUPLICADO</code>.</li>
+              <li>La respuesta exitosa es <code>201 Created</code> con el perfil sin la contraseña.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-02</span>
+              <span class="story-points">3 SP</span>
+              <span class="story-status done">Hecho</span>
+            </div>
+            <h4>Inicio de sesión</h4>
+            <p class="story-narrative">Como usuario registrado, quiero iniciar sesión con mis credenciales, para acceder a las funciones del sistema.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Al autenticar correctamente, devuelve un token Bearer y el perfil.</li>
+              <li>Credenciales inválidas devuelven mensaje genérico (no diferencia email vs password).</li>
+              <li>El token se almacena en el cliente para usarse en requests siguientes.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-03</span>
+              <span class="story-points">3 SP</span>
+              <span class="story-status done">Hecho</span>
+            </div>
+            <h4>Cifrado de contraseñas</h4>
+            <p class="story-narrative">Como sistema, debo almacenar las contraseñas cifradas con hash + salt, para proteger las credenciales ante una eventual fuga de datos.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Ninguna contraseña se almacena en texto plano.</li>
+              <li>Cada usuario tiene un salt único.</li>
+              <li>Las pruebas verifican que el campo <code>password_hash</code> jamás sale en respuestas API.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-04</span>
+              <span class="story-points">3 SP</span>
+              <span class="story-status done">Hecho</span>
+            </div>
+            <h4>Consulta de perfil propio</h4>
+            <p class="story-narrative">Como usuario autenticado, quiero ver mi perfil, para confirmar que mis datos están correctos.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li><code>GET /usuarios/me</code> devuelve el perfil del titular del token.</li>
+              <li>Sin token devuelve <code>401</code>.</li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <div><strong>Demo del Sprint 1.</strong> Registro funcional + login + token persistido. Tag <code>v0.1</code> publicado.</div>
+          </div>
+
+          <!-- ===================== SPRINT 2 ===================== -->
+          <h2 id="sprint2">9. Sprint 2 · Agendamiento de citas</h2>
+          <div class="sprint-header">
+            <h3>Sprint 2</h3>
+            <div class="sprint-meta">
+              <span>📅 8 abr — 21 abr 2026</span>
+              <span>⏱ 2 semanas</span>
+              <span>🎯 18 SP</span>
+            </div>
+          </div>
+          <div class="sprint-goal">
+            <span class="sprint-goal-label">Sprint Goal</span>
+            Que un paciente autenticado pueda consultar disponibilidad, agendar y cancelar sus citas.
+          </div>
+
+          <div class="sprint-summary">
+            <div class="stat"><span class="num">5</span><span class="lbl">Historias</span></div>
+            <div class="stat"><span class="num">18</span><span class="lbl">Story Points</span></div>
+            <div class="stat"><span class="num">5</span><span class="lbl">Endpoints</span></div>
+            <div class="stat"><span class="num">100%</span><span class="lbl">Completadas</span></div>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-05</span><span class="story-points">2 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Listado de médicos</h4>
+            <p class="story-narrative">Como paciente, quiero ver la lista de médicos disponibles por especialidad, para escoger con quién agendar.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li><code>GET /medicos</code> devuelve solo médicos activos.</li>
+              <li>Soporta filtro <code>?especialidad=</code>.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-06</span><span class="story-points">3 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Consulta de disponibilidad</h4>
+            <p class="story-narrative">Como paciente, quiero consultar los horarios libres de un médico para una fecha, para escoger un slot disponible.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>La respuesta lista solo slots no ocupados.</li>
+              <li>Fechas pasadas devuelven <code>422 FECHA_PASADA</code>.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-07</span><span class="story-points">5 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Agendar cita</h4>
+            <p class="story-narrative">Como paciente, quiero agendar una cita en un horario disponible, para asegurar mi atención.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>La validación de doble booking se hace de forma <em>atómica</em> en el servidor.</li>
+              <li>Si el slot fue tomado en paralelo, devuelve <code>409 CITA_DUPLICADA</code>.</li>
+              <li>Confirmación visual al usuario con el detalle de la cita creada.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-08</span><span class="story-points">3 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Mis citas</h4>
+            <p class="story-narrative">Como paciente, quiero ver mis citas agendadas, para llevar control de mis próximas atenciones.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Solo se ven las citas del usuario autenticado.</li>
+              <li>Soporta filtro por estado (agendada, cancelada, atendida).</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-09</span><span class="story-points">5 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Cancelar cita</h4>
+            <p class="story-narrative">Como paciente, quiero cancelar una cita propia, para liberar el horario y avisar a la clínica.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Solo el dueño puede cancelar su cita.</li>
+              <li>Cancelación bloqueada con menos de 1 h de anticipación.</li>
+              <li>El registro se conserva con estado <code>cancelada</code> (auditoría).</li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <div><strong>Demo del Sprint 2.</strong> Flujo completo paciente → consulta → agenda → cancela. Tag <code>v0.2</code> publicado.</div>
+          </div>
+
+          <!-- ===================== SPRINT 3 ===================== -->
+          <h2 id="sprint3">10. Sprint 3 · Panel administrativo</h2>
+          <div class="sprint-header">
+            <h3>Sprint 3</h3>
+            <div class="sprint-meta">
+              <span>📅 22 abr — 5 may 2026</span>
+              <span>⏱ 2 semanas</span>
+              <span>🎯 17 SP</span>
+            </div>
+          </div>
+          <div class="sprint-goal">
+            <span class="sprint-goal-label">Sprint Goal</span>
+            Habilitar al personal administrativo para gestionar médicos, horarios y obtener reportes operativos.
+          </div>
+
+          <div class="sprint-summary">
+            <div class="stat"><span class="num">5</span><span class="lbl">Historias</span></div>
+            <div class="stat"><span class="num">17</span><span class="lbl">Story Points</span></div>
+            <div class="stat"><span class="num">4</span><span class="lbl">Endpoints</span></div>
+            <div class="stat"><span class="num">100%</span><span class="lbl">Completadas</span></div>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-10</span><span class="story-points">3 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Vista global de citas</h4>
+            <p class="story-narrative">Como staff, quiero ver todas las citas con filtros (médico, estado, rango de fechas), para gestionar la operación diaria.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Listado paginado con filtros combinables.</li>
+              <li>Acceso restringido a roles <code>staff</code> y <code>admin</code>.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-11</span><span class="story-points">3 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Alta de médicos</h4>
+            <p class="story-narrative">Como admin, quiero registrar nuevos médicos con su especialidad, para mantener actualizado el catálogo.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Campos obligatorios: nombre, especialidad.</li>
+              <li>Solo rol <code>admin</code> puede crear médicos.</li>
+              <li>La acción se registra en el log de auditoría.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-12</span><span class="story-points">3 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Definición de horarios</h4>
+            <p class="story-narrative">Como admin/staff, quiero definir el horario semanal de atención de cada médico, para configurar la disponibilidad real.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Se pueden registrar múltiples bloques por día.</li>
+              <li>Validación: <code>hora_inicio &lt; hora_fin</code>.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-13</span><span class="story-points">5 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Reportes operativos</h4>
+            <p class="story-narrative">Como admin, quiero ver métricas mensuales (ocupación, cancelaciones, citas por especialidad), para tomar decisiones operativas.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Reporte segmentado por rango de fechas.</li>
+              <li>Incluye ocupación promedio y desglose por especialidad.</li>
+            </ul>
+          </div>
+
+          <div class="story">
+            <div class="story-head">
+              <span class="story-id">HU-14</span><span class="story-points">3 SP</span><span class="story-status done">Hecho</span>
+            </div>
+            <h4>Auditoría de acciones administrativas</h4>
+            <p class="story-narrative">Como sistema, debo registrar las operaciones críticas (alta/baja de médicos, cancelaciones administrativas), para garantizar trazabilidad.</p>
+            <p class="story-criteria-title">Criterios de aceptación</p>
+            <ul class="story-criteria">
+              <li>Cada acción crítica produce un registro con: usuario, acción, recurso, timestamp.</li>
+              <li>Los registros son inmutables.</li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <div><strong>Demo del Sprint 3.</strong> Panel administrativo completo + reportes. Tag <code>v0.3</code> publicado — <em>release candidate</em> de la entrega final.</div>
+          </div>
+
+          <!-- 11 -->
+          <h2 id="kanban">11. Tablero Kanban — estado al cierre</h2>
+          <p>Vista del tablero al finalizar el Sprint 3 (5 may 2026). Las 14 historias están en <strong>Hecho</strong>:</p>
+
+          <svg class="svg-diagram" viewBox="0 0 920 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tablero Kanban con las 14 historias completadas.">
+            <defs>
+              <filter id="kanShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.12"/>
+              </filter>
+            </defs>
+            <style>
+              .kan-col-bg{fill:#fff;stroke:#cbd5e1;stroke-width:1}
+              .kan-col-head{font:700 12px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;letter-spacing:.08em}
+              .kan-col-count{font:700 10px -apple-system,"Segoe UI",sans-serif;text-anchor:middle}
+              .kan-card{stroke-width:1.2;rx:6}
+              .kan-card-id{font:700 10px "SF Mono",Consolas,monospace}
+              .kan-card-title{font:11px -apple-system,"Segoe UI",sans-serif;fill:#0f172a}
+              .kan-card-pts{font:700 9px -apple-system,"Segoe UI",sans-serif;text-anchor:end}
+            </style>
+            <rect width="920" height="620" rx="12" fill="#f8fafc"/>
+
+            <!-- 4 columns -->
+            <g>
+              <rect class="kan-col-bg" x="20" y="40" width="215" height="565" rx="10"/>
+              <rect x="20" y="40" width="215" height="36" rx="10" fill="#f1f5f9"/>
+              <rect x="20" y="60" width="215" height="16" fill="#f1f5f9"/>
+              <text class="kan-col-head" x="127" y="62" fill="#475569">BACKLOG</text>
+              <text class="kan-col-count" x="127" y="78" fill="#94a3b8">0 historias</text>
+            </g>
+            <g>
+              <rect class="kan-col-bg" x="245" y="40" width="215" height="565" rx="10"/>
+              <rect x="245" y="40" width="215" height="36" rx="10" fill="#fef9c3"/>
+              <rect x="245" y="60" width="215" height="16" fill="#fef9c3"/>
+              <text class="kan-col-head" x="352" y="62" fill="#92400e">TO DO</text>
+              <text class="kan-col-count" x="352" y="78" fill="#a16207">0 historias</text>
+            </g>
+            <g>
+              <rect class="kan-col-bg" x="470" y="40" width="215" height="565" rx="10"/>
+              <rect x="470" y="40" width="215" height="36" rx="10" fill="#dbeafe"/>
+              <rect x="470" y="60" width="215" height="16" fill="#dbeafe"/>
+              <text class="kan-col-head" x="577" y="62" fill="#1e3a8a">EN CURSO</text>
+              <text class="kan-col-count" x="577" y="78" fill="#1d4ed8">0 historias</text>
+            </g>
+            <g>
+              <rect class="kan-col-bg" x="695" y="40" width="215" height="565" rx="10"/>
+              <rect x="695" y="40" width="215" height="36" rx="10" fill="#dcfce7"/>
+              <rect x="695" y="60" width="215" height="16" fill="#dcfce7"/>
+              <text class="kan-col-head" x="802" y="62" fill="#166534">HECHO</text>
+              <text class="kan-col-count" x="802" y="78" fill="#15803d">14 historias</text>
+            </g>
+
+            <!-- DONE column cards (14 cards stacked) -->
+            <g filter="url(#kanShadow)">
+              <!-- Sprint 1 cards (orange) -->
+              <rect class="kan-card" x="710" y="92" width="185" height="34" fill="#fff7ed" stroke="#c2410c"/>
+              <text class="kan-card-id" x="720" y="106" fill="#c2410c">HU-01</text>
+              <text class="kan-card-title" x="755" y="106">Registro paciente</text>
+              <text class="kan-card-pts" x="888" y="120" fill="#c2410c">3 SP</text>
+
+              <rect class="kan-card" x="710" y="130" width="185" height="34" fill="#fff7ed" stroke="#c2410c"/>
+              <text class="kan-card-id" x="720" y="144" fill="#c2410c">HU-02</text>
+              <text class="kan-card-title" x="755" y="144">Login</text>
+              <text class="kan-card-pts" x="888" y="158" fill="#c2410c">3 SP</text>
+
+              <rect class="kan-card" x="710" y="168" width="185" height="34" fill="#fff7ed" stroke="#c2410c"/>
+              <text class="kan-card-id" x="720" y="182" fill="#c2410c">HU-03</text>
+              <text class="kan-card-title" x="755" y="182">Hash + salt</text>
+              <text class="kan-card-pts" x="888" y="196" fill="#c2410c">3 SP</text>
+
+              <rect class="kan-card" x="710" y="206" width="185" height="34" fill="#fff7ed" stroke="#c2410c"/>
+              <text class="kan-card-id" x="720" y="220" fill="#c2410c">HU-04</text>
+              <text class="kan-card-title" x="755" y="220">Perfil propio</text>
+              <text class="kan-card-pts" x="888" y="234" fill="#c2410c">3 SP</text>
+
+              <!-- Sprint 2 cards (blue) -->
+              <rect class="kan-card" x="710" y="248" width="185" height="34" fill="#eff6ff" stroke="#1d4ed8"/>
+              <text class="kan-card-id" x="720" y="262" fill="#1d4ed8">HU-05</text>
+              <text class="kan-card-title" x="755" y="262">Listar médicos</text>
+              <text class="kan-card-pts" x="888" y="276" fill="#1d4ed8">2 SP</text>
+
+              <rect class="kan-card" x="710" y="286" width="185" height="34" fill="#eff6ff" stroke="#1d4ed8"/>
+              <text class="kan-card-id" x="720" y="300" fill="#1d4ed8">HU-06</text>
+              <text class="kan-card-title" x="755" y="300">Disponibilidad</text>
+              <text class="kan-card-pts" x="888" y="314" fill="#1d4ed8">3 SP</text>
+
+              <rect class="kan-card" x="710" y="324" width="185" height="34" fill="#eff6ff" stroke="#1d4ed8"/>
+              <text class="kan-card-id" x="720" y="338" fill="#1d4ed8">HU-07</text>
+              <text class="kan-card-title" x="755" y="338">Agendar cita</text>
+              <text class="kan-card-pts" x="888" y="352" fill="#1d4ed8">5 SP</text>
+
+              <rect class="kan-card" x="710" y="362" width="185" height="34" fill="#eff6ff" stroke="#1d4ed8"/>
+              <text class="kan-card-id" x="720" y="376" fill="#1d4ed8">HU-08</text>
+              <text class="kan-card-title" x="755" y="376">Mis citas</text>
+              <text class="kan-card-pts" x="888" y="390" fill="#1d4ed8">3 SP</text>
+
+              <rect class="kan-card" x="710" y="400" width="185" height="34" fill="#eff6ff" stroke="#1d4ed8"/>
+              <text class="kan-card-id" x="720" y="414" fill="#1d4ed8">HU-09</text>
+              <text class="kan-card-title" x="755" y="414">Cancelar cita</text>
+              <text class="kan-card-pts" x="888" y="428" fill="#1d4ed8">5 SP</text>
+
+              <!-- Sprint 3 cards (green) -->
+              <rect class="kan-card" x="710" y="438" width="185" height="34" fill="#f0fdf4" stroke="#15803d"/>
+              <text class="kan-card-id" x="720" y="452" fill="#15803d">HU-10</text>
+              <text class="kan-card-title" x="755" y="452">Vista global</text>
+              <text class="kan-card-pts" x="888" y="466" fill="#15803d">3 SP</text>
+
+              <rect class="kan-card" x="710" y="476" width="185" height="34" fill="#f0fdf4" stroke="#15803d"/>
+              <text class="kan-card-id" x="720" y="490" fill="#15803d">HU-11</text>
+              <text class="kan-card-title" x="755" y="490">Alta médicos</text>
+              <text class="kan-card-pts" x="888" y="504" fill="#15803d">3 SP</text>
+
+              <rect class="kan-card" x="710" y="514" width="185" height="34" fill="#f0fdf4" stroke="#15803d"/>
+              <text class="kan-card-id" x="720" y="528" fill="#15803d">HU-12</text>
+              <text class="kan-card-title" x="755" y="528">Horarios</text>
+              <text class="kan-card-pts" x="888" y="542" fill="#15803d">3 SP</text>
+
+              <rect class="kan-card" x="710" y="552" width="185" height="34" fill="#f0fdf4" stroke="#15803d"/>
+              <text class="kan-card-id" x="720" y="566" fill="#15803d">HU-13</text>
+              <text class="kan-card-title" x="755" y="566">Reportes</text>
+              <text class="kan-card-pts" x="888" y="580" fill="#15803d">5 SP</text>
+            </g>
+
+            <!-- Empty state messages for other columns -->
+            <text x="127" y="320" font="italic 11px -apple-system,sans-serif" fill="#94a3b8" text-anchor="middle">— vacío —</text>
+            <text x="352" y="320" font="italic 11px -apple-system,sans-serif" fill="#94a3b8" text-anchor="middle">— vacío —</text>
+            <text x="577" y="320" font="italic 11px -apple-system,sans-serif" fill="#94a3b8" text-anchor="middle">— vacío —</text>
+
+            <!-- Legend -->
+            <g transform="translate(20,610)">
+              <rect width="14" height="10" fill="#fff7ed" stroke="#c2410c" rx="2"/>
+              <text x="22" y="9" font="11px -apple-system,sans-serif" fill="#475569">Sprint 1 · Auth</text>
+              <rect x="120" width="14" height="10" fill="#eff6ff" stroke="#1d4ed8" rx="2"/>
+              <text x="142" y="9" font="11px -apple-system,sans-serif" fill="#475569">Sprint 2 · Citas</text>
+              <rect x="240" width="14" height="10" fill="#f0fdf4" stroke="#15803d" rx="2"/>
+              <text x="262" y="9" font="11px -apple-system,sans-serif" fill="#475569">Sprint 3 · Admin</text>
+            </g>
+          </svg>
+          <span class="svg-caption">Figura 3. Tablero Kanban — estado final con las 14 historias completadas.</span>
+
+          <!-- 12 -->
+          <h2 id="cierre">12. Métricas y cierre</h2>
+          <table>
+            <thead><tr><th>Métrica</th><th>Sprint 1</th><th>Sprint 2</th><th>Sprint 3</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td>Historias completadas</td><td>4 / 4</td><td>5 / 5</td><td>5 / 5</td><td><strong>14 / 14</strong></td></tr>
+              <tr><td>Story Points entregados</td><td>12</td><td>18</td><td>17</td><td><strong>47</strong></td></tr>
+              <tr><td>Endpoints implementados</td><td>2</td><td>5</td><td>4</td><td><strong>11</strong></td></tr>
+              <tr><td>Pull requests mergeadas</td><td>4</td><td>5</td><td>5</td><td><strong>14</strong></td></tr>
+              <tr><td>Tag de release</td><td><code>v0.1</code></td><td><code>v0.2</code></td><td><code>v0.3</code></td><td>—</td></tr>
+            </tbody>
+          </table>
+
+          <h3>12.1 Aprendizajes (resumen de retrospectivas)</h3>
+          <ul>
+            <li><strong>Funcionó:</strong> commits convencionales y PRs pequeñas → revisiones rápidas y trazabilidad clara.</li>
+            <li><strong>Funcionó:</strong> definir el contrato de API en Sprint 1 evitó retrabajo en Sprint 2 y 3.</li>
+            <li><strong>A mejorar:</strong> estimación de HU-09 (cancelar cita) — se subestimó la lógica de validación temporal.</li>
+            <li><strong>A mejorar:</strong> automatizar más pruebas en CI para reducir verificación manual.</li>
+          </ul>
+
+          <div class="callout">
+            <div>
+              <strong>Siguiente entregable:</strong>
+              <a href="../index.html#entregables">Fase 3 — Despliegue en la nube</a>:
+              pipeline CI/CD, configuración de GitLab Pages y verificación de la URL pública.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Aplicación funcional del Sistema de Gestión de Citas Médicas — demo navegable que evidencia la arquitectura documentada." />
+  <title>Aplicación · Sistema de Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav" aria-label="Navegación principal">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables">Entregables</a>
+          <a href="./index.html" class="active">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container app-container">
+        <div class="app-shell">
+
+          <div class="demo-banner">
+            <div>
+              <strong>Demo académica:</strong> los datos se guardan en LocalStorage de tu navegador.
+              Cuentas de prueba — admin: <code>admin@clinica.com</code> / <code>Admin123!</code> ·
+              staff: <code>staff@clinica.com</code> / <code>Staff123!</code>
+            </div>
+            <button id="reset-data" class="reset-link">Restablecer datos</button>
+          </div>
+
+          <div id="user-bar" class="user-bar" style="display:none"></div>
+          <script>
+            // muestra user-bar solo si hay sesión
+            const _ub = document.getElementById('user-bar');
+            const _hasSession = !!localStorage.getItem('cm_session');
+            _ub.style.display = _hasSession ? 'flex' : 'none';
+          </script>
+
+          <section id="view-auth" class="view"></section>
+          <section id="view-dashboard" class="view"></section>
+          <section id="view-agendar" class="view"></section>
+          <section id="view-admin" class="view"></section>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Aplicación demo · Ingeniería Web Corte III</span>
+        <a href="../index.html">Volver al portal</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="./app.js"></script>
+  <script>
+    // ajustar visibilidad del user-bar tras cada cambio de hash
+    function syncUserBar() {
+      const ub = document.getElementById('user-bar');
+      const has = !!localStorage.getItem('cm_session');
+      ub.style.display = has ? 'flex' : 'none';
+    }
+    window.addEventListener('hashchange', syncUserBar);
+    window.addEventListener('storage', syncUserBar);
+    setTimeout(syncUserBar, 100);
+  </script>
+</body>
+</html>
