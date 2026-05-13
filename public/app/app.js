@@ -1,39 +1,35 @@
 /* =========================================================
-   APLICACIÓN · Sistema de Gestión de Citas Médicas
-   SPA estática con LocalStorage como persistencia.
-   Implementa los módulos descritos en la arquitectura:
-     - Usuarios (auth, register, login, perfil)
-     - Citas (disponibilidad, agendar, listar, cancelar)
-     - Administrativo (todas las citas, médicos, reportes)
+   APLICACION - Sistema de Gestion de Citas Medicas
+   Cliente (capa de presentacion). Llama al backend REST.
+   La capa de logica y datos vive en /server/ (Express).
    ========================================================= */
 
-// ───────── Storage helpers ─────────
-const KEY = {
-  users: 'cm_users',
-  medicos: 'cm_medicos',
-  horarios: 'cm_horarios',
-  citas: 'cm_citas',
-  session: 'cm_session',
-};
+// ───────── Configuracion del backend ─────────
+// Cuando se sirve desde localhost, apunta al backend local en :3000.
+// En produccion, apunta a la URL del backend desplegado en Render.
+const API_BASE = (() => {
+  const h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:3000/api';
+  // ↓ Cambiar tras desplegar el backend en Render:
+  return 'https://ingweb-citas-api.onrender.com/api';
+})();
 
+// ───────── Storage local (solo sesion) ─────────
+const SESSION_KEY = 'cm_session';
 const ST = {
-  get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } },
-  set(k, v) {
-    localStorage.setItem(k, JSON.stringify(v));
-    BUS.publish(k);
-  },
-  del(k) { localStorage.removeItem(k); BUS.publish(k); },
+  getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; } },
+  setSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); BUS.publish(SESSION_KEY); },
+  clearSession() { localStorage.removeItem(SESSION_KEY); BUS.publish(SESSION_KEY); },
 };
 
-// BroadcastChannel: sincroniza pestañas del mismo navegador en tiempo real.
-// Cuando una pestaña agenda/cancela una cita, las demás pestañas se enteran
-// inmediatamente sin necesidad de recargar.
+// ───────── BroadcastChannel: avisa a otras pestañas que algo cambio ─────────
+// Tras una operacion exitosa (agendar/cancelar) las otras pestañas refrescan.
 const BUS = (() => {
   const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('cm_sync') : null;
   const listeners = new Set();
   if (channel) channel.onmessage = (e) => listeners.forEach(fn => fn(e.data));
   window.addEventListener('storage', (e) => {
-    if (e.key && Object.values(KEY).includes(e.key)) listeners.forEach(fn => fn(e.key));
+    if (e.key === SESSION_KEY) listeners.forEach(fn => fn(e.key));
   });
   return {
     publish(key) { if (channel) channel.postMessage(key); },
@@ -41,250 +37,95 @@ const BUS = (() => {
   };
 })();
 
-// ───────── Crypto helpers (hash + salt) ─────────
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function uuid() {
-  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-}
-
-// ───────── Seed inicial ─────────
-async function seed() {
-  if (!ST.get(KEY.users)) {
-    const adminSalt = uuid();
-    const staffSalt = uuid();
-    ST.set(KEY.users, [
-      {
-        id: 'u_admin',
-        nombre: 'Admin Demo',
-        email: 'admin@clinica.com',
-        password_hash: await sha256(adminSalt + 'Admin123!'),
-        salt: adminSalt,
-        rol: 'admin',
-        creado_en: new Date().toISOString(),
-      },
-      {
-        id: 'u_staff',
-        nombre: 'Staff Demo',
-        email: 'staff@clinica.com',
-        password_hash: await sha256(staffSalt + 'Staff123!'),
-        salt: staffSalt,
-        rol: 'staff',
-        creado_en: new Date().toISOString(),
-      },
-    ]);
+// ───────── Fetch wrapper ─────────
+async function apiCall(path, { method = 'GET', body = null, auth = true } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) {
+    const s = ST.getSession();
+    if (s?.token) headers.Authorization = `Bearer ${s.token}`;
   }
-
-  if (!ST.get(KEY.medicos)) {
-    ST.set(KEY.medicos, [
-      { id: 'm_1', nombre: 'Dr. López', especialidad: 'cardiologia', activo: true },
-      { id: 'm_2', nombre: 'Dra. Martínez', especialidad: 'pediatria', activo: true },
-      { id: 'm_3', nombre: 'Dr. García', especialidad: 'general', activo: true },
-    ]);
+  let res;
+  try {
+    res = await fetch(API_BASE + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  } catch (networkErr) {
+    throw err('NETWORK', 'No se puede conectar con el servidor. Verifica que el backend este corriendo.');
   }
-
-  if (!ST.get(KEY.horarios)) {
-    const horarios = [];
-    const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
-    ['m_1', 'm_2', 'm_3'].forEach(med => {
-      dias.forEach(d => {
-        horarios.push({ id: 'h_' + uuid().slice(0, 6), medico_id: med, dia_semana: d, hora_inicio: '08:00', hora_fin: '12:00' });
-        horarios.push({ id: 'h_' + uuid().slice(0, 6), medico_id: med, dia_semana: d, hora_inicio: '14:00', hora_fin: '18:00' });
-      });
-    });
-    ST.set(KEY.horarios, horarios);
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    const e = err(data?.error?.codigo || 'HTTP_ERROR', data?.error?.mensaje || `Error ${res.status}`);
+    throw e;
   }
-
-  if (!ST.get(KEY.citas)) ST.set(KEY.citas, []);
+  return data;
 }
+function err(codigo, mensaje) { const e = new Error(mensaje); e.codigo = codigo; e.mensaje = mensaje; return e; }
 
-// ───────── API mock ─────────
+// ───────── API cliente (todo async ahora) ─────────
 const API = {
   async register({ nombre, email, password }) {
-    if (!nombre || nombre.length < 2) throw err('NOMBRE_INVALIDO', 'El nombre es obligatorio');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw err('EMAIL_INVALIDO', 'Formato de email no válido');
-    if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password))
-      throw err('PASSWORD_DEBIL', 'La contraseña requiere ≥ 8 caracteres con mayúscula y número');
-    const users = ST.get(KEY.users) || [];
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase()))
-      throw err('EMAIL_DUPLICADO', 'Ya existe una cuenta con ese email');
-
-    const salt = uuid();
-    const user = {
-      id: 'u_' + uuid().slice(0, 8),
-      nombre,
-      email,
-      password_hash: await sha256(salt + password),
-      salt,
-      rol: 'paciente',
-      creado_en: new Date().toISOString(),
-    };
-    users.push(user);
-    ST.set(KEY.users, users);
-    return publicUser(user);
+    return apiCall('/auth/register', { method: 'POST', body: { nombre, email, password }, auth: false });
   },
-
   async login({ email, password }) {
-    const users = ST.get(KEY.users) || [];
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    const generic = err('CREDENCIALES_INVALIDAS', 'Email o contraseña incorrectos');
-    if (!user) throw generic;
-    const hash = await sha256(user.salt + password);
-    if (hash !== user.password_hash) throw generic;
-    const session = {
-      token: uuid(),
-      user_id: user.id,
-      rol: user.rol,
-      expiresAt: Date.now() + 3600000,
-    };
-    ST.set(KEY.session, session);
-    return { token: session.token, expiresIn: 3600, user: publicUser(user) };
+    const data = await apiCall('/auth/login', { method: 'POST', body: { email, password }, auth: false });
+    ST.setSession({ token: data.token, user: data.user, expiresAt: Date.now() + data.expiresIn * 1000 });
+    return data;
   },
-
-  logout() { ST.del(KEY.session); },
-
+  async logout() {
+    try { await apiCall('/auth/session', { method: 'DELETE' }); } catch {}
+    ST.clearSession();
+  },
   currentUser() {
-    const s = ST.get(KEY.session);
-    if (!s || s.expiresAt < Date.now()) { ST.del(KEY.session); return null; }
-    const user = (ST.get(KEY.users) || []).find(u => u.id === s.user_id);
-    return user ? publicUser(user) : null;
+    const s = ST.getSession();
+    if (!s || s.expiresAt < Date.now()) { ST.clearSession(); return null; }
+    return s.user;
   },
-
-  // ── Citas ──
-  listMedicos(filtro = null) {
-    let medicos = (ST.get(KEY.medicos) || []).filter(m => m.activo);
-    if (filtro) medicos = medicos.filter(m => m.especialidad === filtro);
-    return medicos;
+  async listMedicos(especialidad = null) {
+    const q = especialidad ? `?especialidad=${encodeURIComponent(especialidad)}` : '';
+    return apiCall('/medicos' + q, { auth: false });
   },
-
-  disponibilidad(medico_id, fecha) {
-    const horarios = ST.get(KEY.horarios) || [];
-    const citas = ST.get(KEY.citas) || [];
-    const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    const dia_semana = dias[new Date(fecha + 'T00:00:00').getDay()];
-    const slots = new Set();
-    horarios
-      .filter(h => h.medico_id === medico_id && h.dia_semana === dia_semana)
-      .forEach(h => {
-        const [hi] = h.hora_inicio.split(':').map(Number);
-        const [hf] = h.hora_fin.split(':').map(Number);
-        for (let hr = hi; hr < hf; hr++) {
-          slots.add(`${String(hr).padStart(2, '0')}:00`);
-          slots.add(`${String(hr).padStart(2, '0')}:30`);
-        }
-      });
-    const ocupados = citas
-      .filter(c => c.medico_id === medico_id && c.fecha_hora.startsWith(fecha) && c.estado !== 'cancelada')
-      .map(c => c.fecha_hora.slice(11, 16));
-    ocupados.forEach(o => slots.delete(o));
-    return [...slots].sort();
+  async disponibilidad(medico_id, fecha) {
+    return apiCall(`/disponibilidad?medico_id=${encodeURIComponent(medico_id)}&fecha=${encodeURIComponent(fecha)}`, { auth: false });
   },
-
-  agendarCita({ medico_id, fecha, hora, motivo }) {
-    const session = ST.get(KEY.session);
-    if (!session) throw err('NO_AUTH', 'Sesión expirada');
-    const fecha_hora = `${fecha}T${hora}:00`;
-    if (new Date(fecha_hora) < new Date()) throw err('FECHA_PASADA', 'No puedes agendar en el pasado');
-    const citas = ST.get(KEY.citas) || [];
-    if (citas.some(c => c.medico_id === medico_id && c.fecha_hora === fecha_hora && c.estado !== 'cancelada'))
-      throw err('CITA_DUPLICADA', 'Ese horario acaba de ocuparse, escoge otro');
-
-    const cita = {
-      id: 'c_' + uuid().slice(0, 8),
-      usuario_id: session.user_id,
-      medico_id,
-      fecha_hora,
-      estado: 'agendada',
-      motivo: motivo || '',
-      creado_en: new Date().toISOString(),
-    };
-    citas.push(cita);
-    ST.set(KEY.citas, citas);
+  async agendarCita({ medico_id, fecha, hora, motivo }) {
+    const cita = await apiCall('/citas', { method: 'POST', body: { medico_id, fecha, hora, motivo } });
+    BUS.publish('cm_citas');
     return cita;
   },
-
-  misCitas() {
-    const session = ST.get(KEY.session);
-    if (!session) return [];
-    return (ST.get(KEY.citas) || [])
-      .filter(c => c.usuario_id === session.user_id)
-      .sort((a, b) => b.fecha_hora.localeCompare(a.fecha_hora));
-  },
-
-  cancelarCita(cita_id) {
-    const session = ST.get(KEY.session);
-    if (!session) throw err('NO_AUTH', 'Sesión expirada');
-    const citas = ST.get(KEY.citas) || [];
-    const cita = citas.find(c => c.id === cita_id);
-    if (!cita) throw err('CITA_NO_ENCONTRADA', 'Cita no existe');
-    if (cita.usuario_id !== session.user_id && !['admin', 'staff'].includes(session.rol))
-      throw err('NO_AUTORIZADO', 'No puedes cancelar esa cita');
-    if (cita.estado === 'cancelada') throw err('YA_CANCELADA', 'Esa cita ya estaba cancelada');
-    const horasRestantes = (new Date(cita.fecha_hora) - new Date()) / 3600000;
-    if (horasRestantes < 1 && cita.usuario_id === session.user_id)
-      throw err('TARDE', 'Solo puedes cancelar con más de 1 hora de anticipación');
-    cita.estado = 'cancelada';
-    cita.cancelada_en = new Date().toISOString();
-    ST.set(KEY.citas, citas);
+  async misCitas() { return apiCall('/citas'); },
+  async cancelarCita(id) {
+    const cita = await apiCall('/citas/' + encodeURIComponent(id), { method: 'DELETE' });
+    BUS.publish('cm_citas');
     return cita;
   },
-
-  // ── Admin ──
-  todasLasCitas(filtros = {}) {
-    let citas = ST.get(KEY.citas) || [];
-    if (filtros.estado) citas = citas.filter(c => c.estado === filtros.estado);
-    if (filtros.medico_id) citas = citas.filter(c => c.medico_id === filtros.medico_id);
-    return citas.sort((a, b) => b.fecha_hora.localeCompare(a.fecha_hora));
+  async todasLasCitas(filtros = {}) {
+    const qs = new URLSearchParams(filtros).toString();
+    return apiCall('/admin/citas' + (qs ? '?' + qs : ''));
   },
-
-  crearMedico({ nombre, especialidad }) {
-    if (!nombre || nombre.length < 2) throw err('NOMBRE_INVALIDO', 'El nombre es obligatorio');
-    if (!especialidad) throw err('ESPECIALIDAD_INVALIDA', 'La especialidad es obligatoria');
-    const medicos = ST.get(KEY.medicos) || [];
-    const m = { id: 'm_' + uuid().slice(0, 6), nombre, especialidad, activo: true };
-    medicos.push(m);
-    ST.set(KEY.medicos, medicos);
-    // horarios por defecto
-    const horarios = ST.get(KEY.horarios) || [];
-    ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'].forEach(d => {
-      horarios.push({ id: 'h_' + uuid().slice(0, 6), medico_id: m.id, dia_semana: d, hora_inicio: '08:00', hora_fin: '12:00' });
-      horarios.push({ id: 'h_' + uuid().slice(0, 6), medico_id: m.id, dia_semana: d, hora_inicio: '14:00', hora_fin: '18:00' });
-    });
-    ST.set(KEY.horarios, horarios);
+  async crearMedico({ nombre, especialidad }) {
+    const m = await apiCall('/admin/medicos', { method: 'POST', body: { nombre, especialidad } });
+    BUS.publish('cm_medicos');
     return m;
   },
-
-  reportes() {
-    const citas = ST.get(KEY.citas) || [];
-    const medicos = ST.get(KEY.medicos) || [];
-    const usuarios = (ST.get(KEY.users) || []).filter(u => u.rol === 'paciente');
-    const por_estado = citas.reduce((acc, c) => { acc[c.estado] = (acc[c.estado] || 0) + 1; return acc; }, {});
-    const por_especialidad = {};
-    citas.forEach(c => {
-      const m = medicos.find(m => m.id === c.medico_id);
-      if (m) por_especialidad[m.especialidad] = (por_especialidad[m.especialidad] || 0) + 1;
-    });
-    const slots_disponibles = medicos.length * 5 * 16;
-    const ocupacion = slots_disponibles > 0 ? citas.filter(c => c.estado !== 'cancelada').length / slots_disponibles : 0;
-    return {
-      totales: { citas: citas.length, pacientes: usuarios.length, medicos: medicos.filter(m => m.activo).length },
-      por_estado,
-      por_especialidad,
-      ocupacion_pct: Math.round(ocupacion * 1000) / 10,
-    };
-  },
-
-  resetData() {
-    Object.values(KEY).forEach(k => ST.del(k));
-    return seed();
+  async reportes() { return apiCall('/admin/reportes'); },
+  async resetData() {
+    await apiCall('/admin/reset', { method: 'POST' });
+    ST.clearSession();
+    BUS.publish('cm_citas');
   },
 };
 
-function err(codigo, mensaje) { const e = new Error(mensaje); e.codigo = codigo; e.mensaje = mensaje; return e; }
-function publicUser(u) { return { id: u.id, nombre: u.nombre, email: u.email, rol: u.rol, creado_en: u.creado_en }; }
+// ───────── Sync entre pestañas ─────────
+// Cuando otra pestaña hace agendar/cancelar, refrescamos la vista activa.
+BUS.subscribe((key) => {
+  if (key !== 'cm_citas' && key !== 'cm_medicos') return;
+  const hash = window.location.hash.slice(1) || 'login';
+  if (hash === 'agendar' && typeof window._refreshSlots === 'function') window._refreshSlots();
+  else if (hash === 'dashboard') renderDashboard();
+  else if (hash === 'admin') {
+    if (adminTab === 'citas') renderAdminCitas();
+    if (adminTab === 'reportes') renderAdminReportes();
+  }
+});
 
 // ───────── UI helpers ─────────
 const $ = sel => document.querySelector(sel);
@@ -298,6 +139,7 @@ function show(viewId) {
 }
 
 function showAlert(container, type, message) {
+  if (!container) return;
   container.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
   if (type === 'success') setTimeout(() => { container.innerHTML = ''; }, 3000);
 }
@@ -307,78 +149,43 @@ function escapeHtml(s) {
 }
 
 function fmtDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
-
 function fmtTime(iso) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 }
 
-function medicoNombre(id) {
-  const m = (ST.get(KEY.medicos) || []).find(m => m.id === id);
-  return m ? m.nombre : '—';
-}
-
-function especialidad(id) {
-  const m = (ST.get(KEY.medicos) || []).find(m => m.id === id);
-  return m ? m.especialidad : '';
-}
-
-function userNombre(id) {
-  const u = (ST.get(KEY.users) || []).find(u => u.id === id);
-  return u ? u.nombre : '—';
-}
-
-// ───────── Sync entre pestañas ─────────
-// Cuando otra pestaña modifica las citas, refresca la vista activa para
-// que el slot recién ocupado deje de mostrarse como libre.
-BUS.subscribe((key) => {
-  if (key !== KEY.citas) return;
-  const hash = window.location.hash.slice(1) || 'login';
-  if (hash === 'agendar') {
-    const medico = document.querySelector('#sel-medico');
-    const fecha = document.querySelector('#sel-fecha');
-    if (medico && fecha && medico.value && fecha.value && typeof window._refreshSlots === 'function') {
-      window._refreshSlots();
-    }
-  } else if (hash === 'dashboard') {
-    renderDashboard();
-  } else if (hash === 'admin') {
-    if (adminTab === 'citas') renderAdminCitas();
-    if (adminTab === 'reportes') renderAdminReportes();
+// Cache ligero de medicos para mostrar nombre/especialidad en las cards.
+let _medicosCache = [];
+async function ensureMedicos() {
+  if (_medicosCache.length === 0) {
+    try { _medicosCache = await API.listMedicos(); } catch { _medicosCache = []; }
   }
-});
+  return _medicosCache;
+}
+function medicoNombre(id) { const m = _medicosCache.find(m => m.id === id); return m ? m.nombre : '—'; }
+function especialidad(id) { const m = _medicosCache.find(m => m.id === id); return m ? m.especialidad : ''; }
 
 // ───────── Router ─────────
-function route() {
+async function route() {
   const hash = window.location.hash.slice(1) || 'login';
   const session = API.currentUser();
 
-  if (!session && !['login', 'register'].includes(hash)) {
-    window.location.hash = 'login';
-    return;
-  }
-
+  if (!session && !['login', 'register'].includes(hash)) { window.location.hash = 'login'; return; }
   if (session && ['login', 'register'].includes(hash)) {
-    window.location.hash = session.rol === 'paciente' ? 'dashboard' : 'admin';
-    return;
+    window.location.hash = session.rol === 'paciente' ? 'dashboard' : 'admin'; return;
   }
-
-  if (hash === 'admin' && session && session.rol === 'paciente') {
-    window.location.hash = 'dashboard';
-    return;
-  }
+  if (hash === 'admin' && session && session.rol === 'paciente') { window.location.hash = 'dashboard'; return; }
 
   renderUserBar(session);
+  if (session) await ensureMedicos();
 
   switch (hash) {
     case 'login': renderLogin(); show('view-auth'); break;
     case 'register': renderRegister(); show('view-auth'); break;
-    case 'dashboard': renderDashboard(); show('view-dashboard'); break;
-    case 'agendar': renderAgendar(); show('view-agendar'); break;
-    case 'admin': renderAdmin(); show('view-admin'); break;
+    case 'dashboard': await renderDashboard(); show('view-dashboard'); break;
+    case 'agendar': await renderAgendar(); show('view-agendar'); break;
+    case 'admin': await renderAdmin(); show('view-admin'); break;
     default: window.location.hash = session ? (session.rol === 'paciente' ? 'dashboard' : 'admin') : 'login';
   }
 }
@@ -399,7 +206,7 @@ function renderUserBar(session) {
       ${session.rol === 'paciente' ? '<a class="btn btn-secondary" href="#dashboard">Mis citas</a><a class="btn btn-primary" href="#agendar">Agendar cita</a>' : '<a class="btn btn-primary" href="#admin">Panel admin</a>'}
       <button class="btn btn-secondary" id="btn-logout">Salir</button>
     </div>`;
-  $('#btn-logout').onclick = () => { API.logout(); window.location.hash = 'login'; };
+  $('#btn-logout').onclick = async () => { await API.logout(); window.location.hash = 'login'; };
 }
 
 let authTab = 'login';
@@ -475,13 +282,15 @@ function authShell(inner) {
 }
 
 function bindAuthTabs() {
-  $$('.auth-tab').forEach(t => {
-    t.onclick = () => { window.location.hash = t.dataset.tab; };
-  });
+  $$('.auth-tab').forEach(t => { t.onclick = () => { window.location.hash = t.dataset.tab; }; });
 }
 
-function renderDashboard() {
-  const citas = API.misCitas();
+async function renderDashboard() {
+  let citas = [];
+  try { citas = await API.misCitas(); } catch (e) {
+    $('#view-dashboard').innerHTML = `<div class="alert alert-error">${escapeHtml(e.mensaje)}</div>`;
+    return;
+  }
   const proximas = citas.filter(c => c.estado === 'agendada' && new Date(c.fecha_hora) >= new Date());
   const pasadas = citas.filter(c => c.estado !== 'agendada' || new Date(c.fecha_hora) < new Date());
 
@@ -517,11 +326,11 @@ function citaCard(c) {
 
 function bindCancelButtons() {
   $$('[data-cancel]').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       if (!confirm('¿Cancelar esta cita?')) return;
       try {
-        API.cancelarCita(btn.dataset.cancel);
-        renderDashboard();
+        await API.cancelarCita(btn.dataset.cancel);
+        await renderDashboard();
         showAlert($('#cita-alert'), 'success', 'Cita cancelada correctamente.');
       } catch (e) {
         showAlert($('#cita-alert'), 'error', e.mensaje);
@@ -539,10 +348,10 @@ function emptyState(msg, btnLabel, href) {
     </div>`;
 }
 
-function renderAgendar() {
-  const medicos = API.listMedicos();
-  const today = new Date();
-  const minDate = today.toISOString().slice(0, 10);
+async function renderAgendar() {
+  const medicos = await API.listMedicos();
+  _medicosCache = medicos;
+  const minDate = new Date().toISOString().slice(0, 10);
 
   $('#view-agendar').innerHTML = `
     <div class="section-bar">
@@ -576,14 +385,19 @@ function renderAgendar() {
 
   let slotSeleccionado = null;
 
-  function refreshSlots() {
-    const medico = $('#sel-medico').value;
-    const fecha = $('#sel-fecha').value;
+  async function refreshSlots() {
+    const medico = $('#sel-medico')?.value;
+    const fecha = $('#sel-fecha')?.value;
     const area = $('#slots-area');
+    if (!area) return;
     slotSeleccionado = null;
-    $('#btn-confirmar').disabled = true;
+    const btn = $('#btn-confirmar');
+    if (btn) btn.disabled = true;
     if (!medico || !fecha) { area.innerHTML = '<p style="color:var(--color-muted);font-size:13px">Escoge médico y fecha primero.</p>'; return; }
-    const slots = API.disponibilidad(medico, fecha);
+    area.innerHTML = '<p style="color:var(--color-muted);font-size:13px">Consultando disponibilidad...</p>';
+    let slots;
+    try { slots = await API.disponibilidad(medico, fecha); }
+    catch (e) { area.innerHTML = `<p style="color:var(--color-error);font-size:13px">${escapeHtml(e.mensaje)}</p>`; return; }
     if (slots.length === 0) {
       area.innerHTML = '<p style="color:var(--color-muted);font-size:13px">Sin horarios disponibles ese día. Prueba otra fecha.</p>';
       return;
@@ -603,36 +417,26 @@ function renderAgendar() {
   $('#sel-medico').onchange = refreshSlots;
   $('#sel-fecha').onchange = refreshSlots;
   window._refreshSlots = refreshSlots;
-  $('#btn-confirmar').onclick = () => {
+
+  $('#btn-confirmar').onclick = async () => {
     const medico_id = $('#sel-medico').value;
     const fecha = $('#sel-fecha').value;
-    // Re-validación atómica: confirmamos que el slot sigue libre justo antes de escribir.
-    // Esto cubre el caso en que otra pestaña ocupó el slot entre el render y el click.
-    const aunDisponible = API.disponibilidad(medico_id, fecha).includes(slotSeleccionado);
-    if (!aunDisponible) {
-      showAlert($('#agendar-alert'), 'error', 'Ese horario acaba de ocuparse, escoge otro.');
-      refreshSlots();
-      return;
-    }
+    if (!medico_id || !fecha || !slotSeleccionado) return;
     try {
-      const cita = API.agendarCita({
-        medico_id,
-        fecha,
-        hora: slotSeleccionado,
-        motivo: $('#motivo').value.trim(),
-      });
+      const cita = await API.agendarCita({ medico_id, fecha, hora: slotSeleccionado, motivo: $('#motivo').value.trim() });
       showAlert($('#agendar-alert'), 'success', `Cita agendada: ${fmtDate(cita.fecha_hora)} a las ${fmtTime(cita.fecha_hora)}`);
       setTimeout(() => { window.location.hash = 'dashboard'; }, 1500);
     } catch (e) {
       showAlert($('#agendar-alert'), 'error', e.mensaje);
-      refreshSlots();
+      // Si fue CITA_DUPLICADA, refrescamos los slots para reflejar lo que tomo otro usuario.
+      if (e.codigo === 'CITA_DUPLICADA') await refreshSlots();
     }
   };
 }
 
 let adminTab = 'citas';
 
-function renderAdmin() {
+async function renderAdmin() {
   $('#view-admin').innerHTML = `
     <div class="section-bar"><h2>Panel administrativo</h2></div>
     <div class="app-tabs">
@@ -641,17 +445,18 @@ function renderAdmin() {
       <button class="app-tab ${adminTab === 'reportes' ? 'active' : ''}" data-atab="reportes">Reportes</button>
     </div>
     <div id="admin-content"></div>`;
-  $$('[data-atab]').forEach(b => {
-    b.onclick = () => { adminTab = b.dataset.atab; renderAdmin(); };
-  });
-  if (adminTab === 'citas') renderAdminCitas();
-  if (adminTab === 'medicos') renderAdminMedicos();
-  if (adminTab === 'reportes') renderAdminReportes();
+  $$('[data-atab]').forEach(b => { b.onclick = () => { adminTab = b.dataset.atab; renderAdmin(); }; });
+  if (adminTab === 'citas') await renderAdminCitas();
+  if (adminTab === 'medicos') await renderAdminMedicos();
+  if (adminTab === 'reportes') await renderAdminReportes();
 }
 
-function renderAdminCitas() {
-  const citas = API.todasLasCitas();
+async function renderAdminCitas() {
   const c = $('#admin-content');
+  let citas;
+  try { citas = await API.todasLasCitas(); } catch (e) {
+    c.innerHTML = `<div class="alert alert-error">${escapeHtml(e.mensaje)}</div>`; return;
+  }
   c.innerHTML = `
     <div id="admin-alert"></div>
     <p style="font-size:13px;color:var(--color-text-soft)">Total: <strong>${citas.length}</strong> citas en el sistema.</p>
@@ -659,9 +464,9 @@ function renderAdminCitas() {
       `<div class="cita-list">${citas.map(adminCitaCard).join('')}</div>`}
   `;
   $$('[data-cancel]').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       if (!confirm('¿Cancelar esta cita como administrador?')) return;
-      try { API.cancelarCita(btn.dataset.cancel); renderAdminCitas(); showAlert($('#admin-alert'), 'success', 'Cita cancelada.'); }
+      try { await API.cancelarCita(btn.dataset.cancel); await renderAdminCitas(); showAlert($('#admin-alert'), 'success', 'Cita cancelada.'); }
       catch (e) { showAlert($('#admin-alert'), 'error', e.mensaje); }
     };
   });
@@ -673,7 +478,7 @@ function adminCitaCard(c) {
       <div class="cita-meta">
         <div class="cita-fecha">${fmtDate(c.fecha_hora)} · ${fmtTime(c.fecha_hora)}</div>
         <div class="cita-medico">
-          <strong>${escapeHtml(userNombre(c.usuario_id))}</strong> con ${escapeHtml(medicoNombre(c.medico_id))}
+          <strong>${escapeHtml(c.usuario_nombre || c.usuario_id)}</strong> con ${escapeHtml(medicoNombre(c.medico_id))}
         </div>
         ${c.motivo ? `<div style="font-size:12px;color:var(--color-muted);margin-top:4px">"${escapeHtml(c.motivo)}"</div>` : ''}
         <span class="cita-status ${c.estado}">${c.estado}</span>
@@ -682,8 +487,9 @@ function adminCitaCard(c) {
     </div>`;
 }
 
-function renderAdminMedicos() {
-  const medicos = ST.get(KEY.medicos) || [];
+async function renderAdminMedicos() {
+  _medicosCache = await API.listMedicos();
+  const medicos = _medicosCache;
   $('#admin-content').innerHTML = `
     <div id="med-alert"></div>
     <div class="auth-card" style="max-width:100%;margin:0 0 24px">
@@ -712,19 +518,22 @@ function renderAdminMedicos() {
           <div><span class="cita-status ${m.activo ? 'agendada' : 'cancelada'}">${m.activo ? 'activo' : 'inactivo'}</span></div>
         </div>`).join('')}
     </div>`;
-  $('#form-medico').onsubmit = (e) => {
+  $('#form-medico').onsubmit = async (e) => {
     e.preventDefault();
     const f = e.target;
     try {
-      API.crearMedico({ nombre: f.nombre.value.trim(), especialidad: f.especialidad.value });
+      await API.crearMedico({ nombre: f.nombre.value.trim(), especialidad: f.especialidad.value });
       showAlert($('#med-alert'), 'success', 'Médico agregado con horarios L-V 8-12 y 14-18.');
-      renderAdminMedicos();
+      await renderAdminMedicos();
     } catch (e) { showAlert($('#med-alert'), 'error', e.mensaje); }
   };
 }
 
-function renderAdminReportes() {
-  const r = API.reportes();
+async function renderAdminReportes() {
+  let r;
+  try { r = await API.reportes(); } catch (e) {
+    $('#admin-content').innerHTML = `<div class="alert alert-error">${escapeHtml(e.mensaje)}</div>`; return;
+  }
   $('#admin-content').innerHTML = `
     <div class="report-stats">
       <div class="report-stat"><span class="num">${r.totales.citas}</span><div class="lbl">Citas totales</div></div>
@@ -754,22 +563,28 @@ function renderAdminReportes() {
     </div>`;
 }
 
-// ───────── Reset demo data ─────────
+// ───────── Reset demo data (solo admin) ─────────
 function bindResetLink() {
   const link = $('#reset-data');
   if (link) {
     link.onclick = async () => {
-      if (!confirm('Esto borrará todos los datos de demostración (citas, usuarios, médicos) y los regenerará. ¿Continuar?')) return;
-      await API.resetData();
-      window.location.hash = 'login';
-      window.location.reload();
+      const sess = API.currentUser();
+      if (!sess || sess.rol !== 'admin') {
+        alert('Solo un admin puede restablecer los datos. Inicia sesión con admin@clinica.com / Admin123!');
+        return;
+      }
+      if (!confirm('Esto borrará todos los datos del servidor y los regenerará. ¿Continuar?')) return;
+      try {
+        await API.resetData();
+        window.location.hash = 'login';
+        window.location.reload();
+      } catch (e) { alert('Error: ' + e.mensaje); }
     };
   }
 }
 
 // ───────── Boot ─────────
-(async function () {
-  await seed();
+(function () {
   window.addEventListener('hashchange', route);
   bindResetLink();
   route();
