@@ -189,7 +189,11 @@ app.post('/api/citas', requireAuth, (req, res) => {
   const { medico_id, fecha, hora, motivo } = req.body || {};
   if (!medico_id || !fecha || !hora) return res.status(400).json(errorBody('PARAMS_INVALIDOS', 'medico_id, fecha y hora son obligatorios'));
   const fecha_hora = `${fecha}T${hora}:00`;
-  if (new Date(fecha_hora) < new Date()) return res.status(400).json(errorBody('FECHA_PASADA', 'No puedes agendar en el pasado'));
+  // Margen de 24h para evitar falsos negativos por diferencia de TZ entre cliente y servidor.
+  // El frontend ya filtra slots pasados con la TZ local del usuario.
+  const margenMs = 24 * 60 * 60 * 1000;
+  if (new Date(fecha_hora).getTime() + margenMs < Date.now())
+    return res.status(400).json(errorBody('FECHA_PASADA', 'No puedes agendar en una fecha pasada'));
   // CHECK ATOMICO: dentro de un solo handler, no hay race condition (JS single-threaded).
   if (db.citas.some(c => c.medico_id === medico_id && c.fecha_hora === fecha_hora && c.estado !== 'cancelada'))
     return res.status(409).json(errorBody('CITA_DUPLICADA', 'Ese horario acaba de ocuparse, escoge otro'));

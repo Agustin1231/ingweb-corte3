@@ -398,6 +398,9 @@ async function renderAgendar() {
     let slots;
     try { slots = await API.disponibilidad(medico, fecha); }
     catch (e) { area.innerHTML = `<p style="color:var(--color-error);font-size:13px">${escapeHtml(e.mensaje)}</p>`; return; }
+    // Filtrar slots cuya hora ya paso en la TZ local del navegador.
+    const ahora = Date.now();
+    slots = slots.filter(hhmm => new Date(`${fecha}T${hhmm}:00`).getTime() > ahora);
     if (slots.length === 0) {
       area.innerHTML = '<p style="color:var(--color-muted);font-size:13px">Sin horarios disponibles ese día. Prueba otra fecha.</p>';
       return;
