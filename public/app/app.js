@@ -10,8 +10,8 @@
 const API_BASE = (() => {
   const h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:3000/api';
-  // ↓ Cambiar tras desplegar el backend en Render:
-  return 'https://ingweb-citas-api.onrender.com/api';
+  // Backend desplegado en Coolify:
+  return 'https://ingweb3.agustinynatalia.site/api';
 })();
 
 // ───────── Storage local (solo sesion) ─────────
