@@ -18,9 +18,28 @@ const KEY = {
 
 const ST = {
   get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } },
-  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
-  del(k) { localStorage.removeItem(k); },
+  set(k, v) {
+    localStorage.setItem(k, JSON.stringify(v));
+    BUS.publish(k);
+  },
+  del(k) { localStorage.removeItem(k); BUS.publish(k); },
 };
+
+// BroadcastChannel: sincroniza pestañas del mismo navegador en tiempo real.
+// Cuando una pestaña agenda/cancela una cita, las demás pestañas se enteran
+// inmediatamente sin necesidad de recargar.
+const BUS = (() => {
+  const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('cm_sync') : null;
+  const listeners = new Set();
+  if (channel) channel.onmessage = (e) => listeners.forEach(fn => fn(e.data));
+  window.addEventListener('storage', (e) => {
+    if (e.key && Object.values(KEY).includes(e.key)) listeners.forEach(fn => fn(e.key));
+  });
+  return {
+    publish(key) { if (channel) channel.postMessage(key); },
+    subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+  };
+})();
 
 // ───────── Crypto helpers (hash + salt) ─────────
 async function sha256(text) {
@@ -312,6 +331,26 @@ function userNombre(id) {
   return u ? u.nombre : '—';
 }
 
+// ───────── Sync entre pestañas ─────────
+// Cuando otra pestaña modifica las citas, refresca la vista activa para
+// que el slot recién ocupado deje de mostrarse como libre.
+BUS.subscribe((key) => {
+  if (key !== KEY.citas) return;
+  const hash = window.location.hash.slice(1) || 'login';
+  if (hash === 'agendar') {
+    const medico = document.querySelector('#sel-medico');
+    const fecha = document.querySelector('#sel-fecha');
+    if (medico && fecha && medico.value && fecha.value && typeof window._refreshSlots === 'function') {
+      window._refreshSlots();
+    }
+  } else if (hash === 'dashboard') {
+    renderDashboard();
+  } else if (hash === 'admin') {
+    if (adminTab === 'citas') renderAdminCitas();
+    if (adminTab === 'reportes') renderAdminReportes();
+  }
+});
+
 // ───────── Router ─────────
 function route() {
   const hash = window.location.hash.slice(1) || 'login';
@@ -563,11 +602,22 @@ function renderAgendar() {
 
   $('#sel-medico').onchange = refreshSlots;
   $('#sel-fecha').onchange = refreshSlots;
+  window._refreshSlots = refreshSlots;
   $('#btn-confirmar').onclick = () => {
+    const medico_id = $('#sel-medico').value;
+    const fecha = $('#sel-fecha').value;
+    // Re-validación atómica: confirmamos que el slot sigue libre justo antes de escribir.
+    // Esto cubre el caso en que otra pestaña ocupó el slot entre el render y el click.
+    const aunDisponible = API.disponibilidad(medico_id, fecha).includes(slotSeleccionado);
+    if (!aunDisponible) {
+      showAlert($('#agendar-alert'), 'error', 'Ese horario acaba de ocuparse, escoge otro.');
+      refreshSlots();
+      return;
+    }
     try {
       const cita = API.agendarCita({
-        medico_id: $('#sel-medico').value,
-        fecha: $('#sel-fecha').value,
+        medico_id,
+        fecha,
         hora: slotSeleccionado,
         motivo: $('#motivo').value.trim(),
       });
@@ -575,6 +625,7 @@ function renderAgendar() {
       setTimeout(() => { window.location.hash = 'dashboard'; }, 1500);
     } catch (e) {
       showAlert($('#agendar-alert'), 'error', e.mensaje);
+      refreshSlots();
     }
   };
 }
