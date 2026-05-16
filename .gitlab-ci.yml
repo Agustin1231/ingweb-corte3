@@ -5,6 +5,7 @@
 
 stages:
   - validate
+  - sast
   - build
   - deploy
 
@@ -19,7 +20,46 @@ validate:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
-# 2. Construcción de artefactos
+# 2. Análisis SAST con Semgrep (DevSecOps)
+#
+# Corre Semgrep con rulesets enfocados en JavaScript, Node.js, Express,
+# XSS, JWT y secretos. Genera reporte JSON descargable como artifact.
+# Si hay hallazgos no bloquea el pipeline (allow_failure: true) pero los
+# expone para revisión manual y para la pestaña Security de GitLab.
+sast:
+  stage: sast
+  image: returntocorp/semgrep
+  script:
+    - echo "Ejecutando Semgrep SAST..."
+    - semgrep scan
+        --config=p/javascript
+        --config=p/nodejsscan
+        --config=p/xss
+        --config=p/expressjs
+        --config=p/jwt
+        --config=p/secrets
+        --json --output semgrep-report.json
+        --severity WARNING --severity ERROR
+        server/ public/ || true
+    - echo "Generando resumen..."
+    - semgrep scan
+        --config=p/javascript
+        --config=p/nodejsscan
+        --config=p/xss
+        --config=p/expressjs
+        --severity WARNING --severity ERROR
+        server/ public/ || true
+  artifacts:
+    paths:
+      - semgrep-report.json
+    expire_in: 1 month
+    when: always
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+# 3. Construcción de artefactos
 build:
   stage: build
   image: alpine:latest

@@ -1,0 +1,55 @@
+===== TEST: Acceso a /api/admin/reset sin token =====
+HTTP/2 401 
+date: Sat, 16 May 2026 19:33:20 GMT
+content-type: application/json; charset=utf-8
+content-length: 82
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"52-AAAogPmDnh//gtCaUtflXL4J6WI"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=%2FuGG5f5G%2BsZAtZBPTQzsbomiIKQ61sxDNys3XHRwilSr42E0genwdHNKBoK8pZFedFEX844OjlT%2FWgMxnBXP6IYw%2FLBuI%2BMNysRnyp7BP8LIkT41zf%2B8xhKJQWtN4jm83EA%2BIoSY7h4514AsIykr"}]}
+server: cloudflare
+cf-ray: 9fccd04428b1adba-MIA
+
+{"error":{"codigo":"NO_AUTH","mensaje":"Token invalido o expirado","detalles":{}}}
+===== TEST: Acceso a /api/admin/citas sin token =====
+HTTP/2 401 
+date: Sat, 16 May 2026 19:33:20 GMT
+content-type: application/json; charset=utf-8
+content-length: 82
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"52-AAAogPmDnh//gtCaUtflXL4J6WI"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=vYkMLIbDahIimMBWWbEKgBTZ5ZfvtZ4MlulbUeDefWJ%2BDH8st44Pwowq%2FZFFF54Uin26vtsGQXjDciPRBAWC3yJtBYYrJY9GKakKZdgprQ3ZQs9N5RnkyPc17xjc2R539T1RmVczdZDXF0qoT5%2F3"}]}
+server: cloudflare
+cf-ray: 9fccd045bba88db8-MIA
+
+{"error":{"codigo":"NO_AUTH","mensaje":"Token invalido o expirado","detalles":{}}}
+===== TEST: Login admin valido =====
+{"token":"87dff5b1-5343-44fb-b9c8-f606fe4b401a","expiresIn":3600,"user":{"id":"u_admin","nombre":"Admin Demo","email":"admin@clinica.com","rol":"admin","creado_en":"2026-05-13T12:38:37.817Z"}}
+
+Token obtenido: 87dff5b1-534...
+
+===== TEST: GET /api/admin/citas con token admin =====
+HTTP/2 200 
+date: Sat, 16 May 2026 19:33:21 GMT
+content-type: application/json; charset=utf-8
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=fj%2FDutgrfJKMUEX2T2O1dhaOTYcgIkkInFSS7jyyYDmPR8m0AhEJb2nUdKYWW2R6sSEPc4SrpBTO4LNaUy%2Fi3ZLi4E%2Brr%2Fk57CEYK5FEwvaSS06PSEW5zphcnDfB0wQcsPRft0uqt6nrbKloNxhH"}]}
+etag: W/"446-H9qcDXgexroGDyXtpuuGZbnkCzw"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+server: cloudflare
+cf-ray: 9fccd049384ea4be-MIA
+
+[{"id":"c_a25f3b6d","usuario_id":"u_6493cff6","medico_id":"m_1","fecha_hora":"2026-05-14T08:00:00","estado":"cancelada","motivo":"","creado_en":"2026-05-13T15:38:02.987Z","cancelada_en":"2026-05-13T15:42:42.615Z","usuario_nombre":"Natalia Moncaleamo Montero"},{"id":"c_d7b8ef0e","usuario_id":"u_6493cff6","medico_id":"m_1","fecha_hora":"2026-05-14T08:00:00","estado":"agendada","motivo":"","creado_en":"2026-05-13T15:47:19.173Z","usuario_nombre":"Natalia Moncaleamo Montero"},{"id":"c_2264082d","usuario_id":"u_6493cff6","medico_id":"m_1","fecha_hora":"2026-05-13T11:30:00","estado":"agendada","motivo":"","creado_en":"2026-05-13T15:43:05.408Z","usuario_nombre":"Natalia Moncaleamo Montero"},{"id":"c_b6b49fed","usuario_id":"u_b19f3f4f","medico_id":"m_1","fecha_hora":"2026-05-13T08:30:00","estado":"agendada","motivo":"","creado_en":"2026-05-13T12:59:40.082Z","usuario_nombre":"Natalia"},{"id":"c_b2eeba6a","usuario_id":"u_0e186de1","medico_id":"m_1","fecha_hora":"2026-05-13T08:00:00","estado":"agendada","motivo":"","creado_en":"2026-05-13T12:59:26.923Z","usuario_nombre":"Agustin Peralta"}]

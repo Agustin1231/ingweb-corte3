@@ -1,0 +1,16 @@
+HTTP/2 200 
+date: Sat, 16 May 2026 19:32:08 GMT
+content-type: application/json; charset=utf-8
+content-length: 58
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"3a-ltY9M/79mP2l/zbt5EbTPjD2f5Q"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=4VJQGASSn3rAyZ6oD6ldaWzs1UNx7JOKQawa8f19a20QViM%2BqgyjCVGOA2IqVN2WyqXKKP3yj%2Farm6oP7pzW%2FJdX0idx37960kJnszqu5y2HAq4St0OhztTcYrID2Q0Yy908YrQrL0OYb2UR45rZ"}]}
+server: cloudflare
+cf-ray: 9fccce7fda16e00f-MIA
+
+{"ok":true,"name":"ingweb-citas-api","endpoints":"/api/*"}

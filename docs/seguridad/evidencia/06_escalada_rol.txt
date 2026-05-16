@@ -1,0 +1,42 @@
+===== TEST: Registro de paciente nuevo =====
+{"id":"u_87cb79df","nombre":"Pen Test","email":"pentest_1778960016@test.com","rol":"paciente","creado_en":"2026-05-16T19:33:36.741Z"}
+
+===== TEST: Login como paciente recien creado =====
+{"token":"c391fd26-025e-42e1-85e9-4ffab8f58b8d","expiresIn":3600,"user":{"id":"u_87cb79df","nombre":"Pen Test","email":"pentest_1778960016@test.com","rol":"paciente","creado_en":"2026-05-16T19:33:36.741Z"}}
+
+Token paciente: c391fd26-025...
+
+===== TEST: Paciente intenta acceder /api/admin/citas =====
+HTTP/2 403 
+date: Sat, 16 May 2026 19:33:37 GMT
+content-type: application/json; charset=utf-8
+content-length: 83
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"53-r1N7FqBxqsCB9h6XSMGCtARPudY"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=oUrLLoZ%2FC9IFwhc3sTpKxl48c1IEkSkLVFxotc2iMRUjgm5OnC%2FVR3uFu%2BJ9I4JCx06fDiLhmElTqarFjS9WaqIeq%2FNXO8lLaeLN%2BgOC2TawSESgbpe%2FOerWG4yDv6gINHzvS2CBQEdnWJxIupgz"}]}
+server: cloudflare
+cf-ray: 9fccd0abfd319ae6-MIA
+
+{"error":{"codigo":"NO_AUTORIZADO","mensaje":"Permiso insuficiente","detalles":{}}}
+===== TEST: Paciente intenta /api/admin/reset =====
+HTTP/2 403 
+date: Sat, 16 May 2026 19:33:37 GMT
+content-type: application/json; charset=utf-8
+content-length: 83
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"53-r1N7FqBxqsCB9h6XSMGCtARPudY"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=hrnKkpOU7uMINYn%2BaVASoM0JJYXVWKabaIqh5GewAt2z5qWWq8o3qKEsB%2Bkh%2BAqGoQx8xuKIobs%2FnHN1NvkBUCcUSZP3Chjr8KAn5RqOPjX%2FTpoKBBuAB%2BG7yLxnfFn6Ej4VI%2Ftg6pZfmFx6J4xm"}]}
+server: cloudflare
+cf-ray: 9fccd0adbfb5dab1-MIA
+
+{"error":{"codigo":"NO_AUTORIZADO","mensaje":"Permiso insuficiente","detalles":{}}}

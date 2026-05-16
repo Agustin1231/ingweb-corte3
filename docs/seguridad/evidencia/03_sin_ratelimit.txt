@@ -1,0 +1,18 @@
+===== TEST: 15 intentos de login en rafaga (sin rate-limit) =====
+Intento 1 -> HTTP 401
+Intento 2 -> HTTP 401
+Intento 3 -> HTTP 401
+Intento 4 -> HTTP 401
+Intento 5 -> HTTP 401
+Intento 6 -> HTTP 401
+Intento 7 -> HTTP 401
+Intento 8 -> HTTP 401
+Intento 9 -> HTTP 401
+Intento 10 -> HTTP 401
+Intento 11 -> HTTP 401
+Intento 12 -> HTTP 401
+Intento 13 -> HTTP 401
+Intento 14 -> HTTP 401
+Intento 15 -> HTTP 401
+
+Resultado: ningun 429. Backend no aplica rate-limit. Confirmado.

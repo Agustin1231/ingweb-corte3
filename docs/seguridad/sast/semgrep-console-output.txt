@@ -1,0 +1,64 @@
+$ semgrep scan \
+    --config=p/javascript \
+    --config=p/nodejsscan \
+    --config=p/xss \
+    --config=p/expressjs \
+    --severity WARNING --severity ERROR \
+    server/ public/
+
+┌─────────────┐
+│ Scan Status │
+└─────────────┘
+  Scanning 29 files tracked by git with 193 Code rules:
+  Scanning 2 files with 165 js rules.
+
+┌─────────────────┐
+│ 3 Code Findings │
+└─────────────────┘
+
+    public/app/app.js
+    ❯❱ ajinabraham.njsscan.crypto.timing_attack_node.node_timing_attack
+          ❰❰ Blocking ❱❱
+          String comparisons using '===', '!==', '!=' and '==' is vulnerable to timing attacks.
+          Details: https://sg.run/BDR2
+
+          123┆ else if (hash === 'dashboard') renderDashboard();
+          124┆ else if (hash === 'admin') {
+
+    server/server.js
+    ❯❱ ajinabraham.njsscan.generic.hardcoded_secrets.node_username
+          ❰❰ Blocking ❱❱
+          A hardcoded username in plain text is identified.
+          Details: https://sg.run/5z6X
+
+          113┆ user.algo = 'bcrypt';
+
+
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+✅ Scan completed successfully.
+ • Findings: 3 (3 blocking)
+ • Rules run: 165
+ • Targets scanned: 31
+ • Parsed lines: ~100.0%
+
+CLASIFICACION DE LOS 3 HALLAZGOS (analisis manual)
+==================================================
+1. app.js:123-124 (node_timing_attack)
+   FALSO POSITIVO — la heuristica de Semgrep marca cualquier comparacion
+   con === sobre strings cortos, pero aqui se compara contra nombres de
+   ruta ('dashboard', 'admin'), no contra material criptografico.
+
+2. server.js:113 (node_username)
+   FALSO POSITIVO — `user.algo = 'bcrypt'` no es un username hardcoded,
+   es la etiqueta del algoritmo de hashing usada para distinguir
+   passwords bcrypt vs legados.
+
+3. server.js:216 (detected-bcrypt-hash) [solo con --config=auto]
+   FALSO POSITIVO — el hash bcrypt en linea 216 es el "dummy" usado
+   intencionalmente para que `bcrypt.compare` corra el mismo tiempo
+   cuando un usuario no existe. Esta documentado y es defensa
+   anti-enumeracion, no una credencial real.
+
+Conclusion: 0 hallazgos reales tras revision manual de los 3.

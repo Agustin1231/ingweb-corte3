@@ -1,0 +1,23 @@
+===== TEST: IDOR — paciente intenta cancelar cita de otro usuario =====
+Registro paciente IDOR: {"id":"u_7257c7aa","nombre":"Idor Test","email":"idor_1778960075@test.com","rol":"paciente","creado_en":"2026-05-16T19:34:35.264Z"}
+Token paciente IDOR: 2002773b-b53...
+
+Intento DELETE de cita c_d7b8ef0e (pertenece a u_6493cff6 = Natalia)
+HTTP/2 403 
+date: Sat, 16 May 2026 19:34:35 GMT
+content-type: application/json; charset=utf-8
+content-length: 90
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"5a-IRR0LqA1CgSDMIcy1Tmhcs4hpY0"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=fGjeEIYi0j5opmIqZGov3%2FZ5X4cJg7mzayKaL6U%2Fvu8unKiJa4rTfGtJ97VSnoxqhMZJs7Q8TfMQIxLWQPRzTjbskDfacftSE0kv7mY70O%2BEysUxqxtbvgLI1XrwYZqGT8EOpER9O%2F1b6iPKRY01"}]}
+server: cloudflare
+cf-ray: 9fccd219ae53614c-MIA
+
+{"error":{"codigo":"NO_AUTORIZADO","mensaje":"No puedes cancelar esa cita","detalles":{}}}
+===== TEST: GET /api/citas — solo devuelve mis citas? =====
+[]

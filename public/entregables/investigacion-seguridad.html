@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Investigación de seguridad — auditoría, pen-test y hardening del sistema de citas médicas." />
+  <title>Investigación de seguridad · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .sec-cap{margin:18px 0;border:1px solid var(--color-border,#e2e8f0);border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .sec-cap img{display:block;width:100%;height:auto}
+    .sec-cap figcaption{padding:10px 14px;font-size:12px;color:#475569;background:#f8fafc;border-top:1px solid #e2e8f0}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin:18px 0}
+    .gallery .sec-cap{margin:0}
+    pre.evidence{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:12.5px;line-height:1.55;font-family:ui-monospace,Menlo,Consolas,monospace}
+    pre.evidence .ok{color:#86efac}
+    pre.evidence .bad{color:#fca5a5}
+    .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+    .kpi .box{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .kpi .box .n{font-size:28px;font-weight:700;color:var(--color-primary-dark,#1d4ed8)}
+    .kpi .box .l{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+    .legend{font-size:13px;color:#475569;margin:6px 0 18px}
+    .legend span{display:inline-block;margin-right:14px}
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#resumen">Resumen ejecutivo</a></li>
+            <li><a href="#metodologia">Metodología</a></li>
+            <li><a href="#owasp">Hallazgos OWASP</a></li>
+            <li><a href="#adicionales">Hallazgos adicionales</a></li>
+            <li><a href="#cambios">Cambios de hardening</a></li>
+            <li><a href="#funcionalidad">Funcionalidad verificada</a></li>
+            <li><a href="#deuda">Brechas abiertas</a></li>
+            <li><a href="#reproducir">Reproducción</a></li>
+            <li><a href="#conclusion">Conclusión</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Investigación</span> <span class="tag green">Seguridad · Hardening</span></p>
+          <h1>Investigación de seguridad</h1>
+          <div class="doc-meta">
+            Auditoría · Pen-test · Hardening · Re-auditoría · Versión 1.0 · 2026-05-16
+          </div>
+
+          <h2 id="resumen">1. Resumen ejecutivo</h2>
+          <p>
+            El entregable original <a href="./06-seguridad.html"><code>06-seguridad.html</code></a> describe un modelo de seguridad OWASP-compliant. Esta investigación verifica
+            <strong>cada afirmación contra el código real</strong> y contra el backend desplegado en
+            <code>https://ingweb3.agustinynatalia.site/api</code>, aplica el hardening necesario,
+            y vuelve a auditar.
+          </p>
+
+          <div class="kpi">
+            <div class="box"><div class="n">10</div><div class="l">Afirmaciones auditadas</div></div>
+            <div class="box"><div class="n">4 → 8</div><div class="l">Controles OWASP cubiertos</div></div>
+            <div class="box"><div class="n">8</div><div class="l">Cambios de hardening</div></div>
+            <div class="box"><div class="n">10</div><div class="l">Capturas de evidencia</div></div>
+          </div>
+
+          <blockquote>
+            Una afirmación de seguridad sin prueba reproducible es una declaración vacía.
+          </blockquote>
+
+          <h2 id="metodologia">2. Metodología</h2>
+          <p>Ciclo <strong>audit → exploit → fix → re-audit</strong> en tres fases:</p>
+          <ol>
+            <li><strong>Auditoría estática</strong> de <code>server/server.js</code> y <code>public/app/app.js</code> contra las afirmaciones del entregable previo.</li>
+            <li><strong>Pen-test activo</strong> contra el backend en producción (autorizado por el dueño del dominio), usando <code>curl</code>.</li>
+            <li><strong>Hardening + verificación</strong>: se modificó <code>server/server.js</code> añadiendo <code>helmet</code>, <code>express-rate-limit</code>, <code>bcrypt</code>, allowlist de CORS, comparaciones timing-safe y límites de tamaño. Se levantó el backend hardened localmente y se repitieron las pruebas.</li>
+          </ol>
+          <p class="legend">
+            <span><span class="tag green">✅ Confirmado</span></span>
+            <span><span class="tag amber">⚠️ Parcial</span></span>
+            <span><span class="tag red">❌ Falso</span></span>
+          </p>
+
+          <h2 id="owasp">3. Hallazgos contra OWASP Top 10</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Riesgo</th>
+                <th>Afirmación del doc original</th>
+                <th>Estado real (antes)</th>
+                <th>Estado tras hardening</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>A01</strong> Broken Access Control</td><td>RBAC + propiedad del recurso</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span></td></tr>
+              <tr><td><strong>A02</strong> Cryptographic Failures</td><td>SHA-256 + salt (Web Crypto)</td><td><span class="tag amber">⚠️ era Node crypto, hash rápido</span></td><td><span class="tag green">✅ bcrypt + timing-safe</span></td></tr>
+              <tr><td><strong>A03</strong> Injection</td><td>Queries parametrizadas</td><td><span class="tag amber">⚠️ no aplica (no hay BD)</span></td><td><span class="tag green">✅ reformulado</span></td></tr>
+              <tr><td><strong>A04</strong> Insecure Design</td><td>Security by Design</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span></td></tr>
+              <tr><td><strong>A05</strong> Security Misconfiguration</td><td>Headers + sin verbose errors</td><td><span class="tag red">❌ ningún header</span></td><td><span class="tag green">✅ helmet + handler</span></td></tr>
+              <tr><td><strong>A06</strong> Vulnerable Components</td><td>Stack mínimo</td><td><span class="tag green">✅ 0 vulnerabilidades</span></td><td><span class="tag green">✅</span></td></tr>
+              <tr><td><strong>A07</strong> Auth Failures</td><td>Rate-limit 5/min</td><td><span class="tag red">❌ sin rate-limit</span></td><td><span class="tag green">✅ express-rate-limit</span></td></tr>
+              <tr><td><strong>A08</strong> Software & Data Integrity</td><td>Despliegue revisado</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span></td></tr>
+              <tr><td><strong>A09</strong> Logging & Monitoring</td><td>Log + auditoría</td><td><span class="tag red">❌ sin logs</span></td><td><span class="tag amber">⚠️ deuda</span></td></tr>
+              <tr><td><strong>A10</strong> SSRF</td><td>N/A</td><td><span class="tag green">✅</span></td><td><span class="tag green">✅</span></td></tr>
+            </tbody>
+          </table>
+
+          <h3>3.1 A05 — Headers de seguridad (antes: ningún header de seguridad)</h3>
+          <p>Petición a la raíz del backend en producción. Sin HSTS, sin CSP, sin X-Frame-Options. Y peor: <code>x-powered-by: Express</code> filtra la pila.</p>
+<pre class="evidence">$ curl -i https://ingweb3.agustinynatalia.site/
+
+HTTP/2 200
+date: Sat, 16 May 2026 19:32:08 GMT
+content-type: application/json; charset=utf-8
+<span class="bad">access-control-allow-origin: *</span>
+<span class="bad">x-powered-by: Express</span>
+<span class="bad">[falta] strict-transport-security</span>
+<span class="bad">[falta] content-security-policy</span>
+<span class="bad">[falta] x-frame-options</span>
+<span class="bad">[falta] x-content-type-options</span>
+<span class="bad">[falta] referrer-policy</span></pre>
+
+          <p>Tras aplicar <code>helmet()</code> y <code>app.disable('x-powered-by')</code>:</p>
+<pre class="evidence">$ curl -i http://localhost:3030/
+
+HTTP/1.1 200 OK
+<span class="ok">strict-transport-security: max-age=31536000; includeSubDomains</span>
+<span class="ok">content-security-policy: default-src 'self'; ...</span>
+<span class="ok">x-content-type-options: nosniff</span>
+<span class="ok">x-frame-options: SAMEORIGIN</span>
+<span class="ok">referrer-policy: no-referrer</span>
+<span class="ok">cross-origin-opener-policy: same-origin</span>
+<span class="ok">vary: Origin</span>
+<span class="ok">[removido] x-powered-by</span></pre>
+
+          <figure class="sec-cap">
+            <img src="capturas-seguridad/10_headers_comparativa.png" alt="Comparativa de headers HTTP antes y después del hardening" />
+            <figcaption>Figura 1. Comparativa de headers HTTP del mismo endpoint, antes y después del hardening.</figcaption>
+          </figure>
+
+          <h3>3.2 A07 — Rate-limit en login (antes: 15 intentos sin un solo 429)</h3>
+          <p>15 intentos seguidos contra <code>/api/auth/login</code> en producción:</p>
+<pre class="evidence">$ for i in $(seq 1 15); do curl -o /dev/null -w "%{http_code}\n" \
+      -X POST https://ingweb3.agustinynatalia.site/api/auth/login \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"admin@clinica.com\",\"password\":\"intento_$i\"}"
+  done
+
+<span class="bad">Intento  1 -> HTTP 401
+Intento  2 -> HTTP 401
+…
+Intento 15 -> HTTP 401</span>
+
+Resultado: ningún 429. Backend no aplica rate-limit. Confirmado.</pre>
+
+          <p>Tras instalar <code>express-rate-limit</code> (5 intentos por minuto):</p>
+<pre class="evidence">$ for i in $(seq 1 10); do curl -o /dev/null -w "%{http_code}\n" \
+      -X POST http://localhost:3030/api/auth/login -d "{...intento $i...}"; done
+
+<span class="ok">Intento 1 -> HTTP 401
+Intento 2 -> HTTP 401
+Intento 3 -> HTTP 401
+Intento 4 -> HTTP 401
+Intento 5 -> HTTP 401
+Intento 6 -> HTTP 429
+Intento 7 -> HTTP 429
+Intento 8 -> HTTP 429
+Intento 9 -> HTTP 429
+Intento 10 -> HTTP 429</span></pre>
+
+          <p>El comportamiento es visible en la UI sin código frontend adicional:</p>
+          <figure class="sec-cap">
+            <img src="capturas-seguridad/09_ratelimit_en_ui.png" alt="Formulario de login mostrando mensaje de rate-limit" />
+            <figcaption>Figura 2. Rate-limit propagado desde el backend a la UI tras 5 intentos fallidos.</figcaption>
+          </figure>
+
+          <h3>3.3 A02 — Hashing de contraseñas (antes: SHA-256 rápido + comparación con <code>!==</code>)</h3>
+          <p>El backend original usaba <code>createHash('sha256')</code> con salt único por usuario y comparación con <code>!==</code>. Dos problemas:</p>
+          <ul>
+            <li>SHA-256 es <strong>rápido</strong>; vulnerable a fuerza bruta GPU.</li>
+            <li>La comparación con <code>!==</code> permite <em>timing attacks</em>.</li>
+          </ul>
+          <p>Tras hardening: <code>bcrypt</code> con cost=10 + comparación timing-safe + <em>bcrypt dummy</em> cuando el email no existe (para no enumerar usuarios por tiempo de respuesta). Migración silenciosa: el primer login exitoso de un usuario heredado lo re-hashea con bcrypt.</p>
+<pre class="evidence">$ cat server/data.json | jq '.users[] | {email, algo, hash_prefix: (.password_hash[0:10])}'
+
+<span class="ok">{
+  "email": "admin@clinica.com",
+  "algo": "bcrypt",
+  "hash_prefix": "$2b$10$Zz9..."
+}
+{
+  "email": "staff@clinica.com",
+  "algo": "bcrypt",
+  "hash_prefix": "$2b$10$5is..."
+}</span></pre>
+
+          <h2 id="adicionales">4. Hallazgos adicionales</h2>
+
+          <h3>4.1 CORS abierto a cualquier origen</h3>
+          <p>Cualquier sitio podía hacer peticiones cross-origin al backend, así trajera credenciales:</p>
+<pre class="evidence">$ curl -i -X OPTIONS https://ingweb3.agustinynatalia.site/api/auth/login \
+       -H "Origin: https://evil.example.com" \
+       -H "Access-Control-Request-Method: POST"
+
+HTTP/2 204
+<span class="bad">access-control-allow-origin: *</span>
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE</pre>
+
+          <p>Tras hardening, allowlist por <code>CORS_ORIGINS</code> bloquea orígenes desconocidos:</p>
+<pre class="evidence">$ curl -i -X OPTIONS http://localhost:3030/api/auth/login \
+       -H "Origin: https://evil.example.com"
+
+<span class="ok">HTTP/1.1 403 Forbidden
+{"error":{"codigo":"CORS_BLOQUEADO","mensaje":"Origen no permitido"}}</span></pre>
+
+          <h3>4.2 Payload sin tope de tamaño</h3>
+          <p>Un registro con <code>nombre</code> de 50 KB se persistía sin problemas, inflando <code>data.json</code> gratuitamente — vector de DoS:</p>
+<pre class="evidence">$ # body con campo nombre de 50_000 caracteres
+$ curl -X POST https://ingweb3.agustinynatalia.site/api/auth/register \
+       -H "Content-Type: application/json" --data-binary @big_payload.json
+
+<span class="bad">HTTP/2 201
+{"id":"u_5d7ea1c0","nombre":"AAAA...(50_000 caracteres)...","rol":"paciente"}</span></pre>
+
+          <p>Tras hardening (<code>express.json({ limit: '10kb' })</code> + validación por campo):</p>
+<pre class="evidence">$ curl -i -X POST http://localhost:3030/api/auth/register \
+       --data-binary @big_payload.json
+
+<span class="ok">HTTP/1.1 413 Payload Too Large
+{"error":{"codigo":"PAYLOAD_TOO_LARGE","mensaje":"Cuerpo de la peticion demasiado grande"}}</span></pre>
+
+          <h3>4.3 RBAC e IDOR — confirmados sin cambios</h3>
+          <p>Un paciente recién registrado intenta acceder a endpoints admin y a una cita ajena:</p>
+<pre class="evidence">$ curl -i -X GET https://ingweb3.agustinynatalia.site/api/admin/citas \
+       -H "Authorization: Bearer $PTOKEN"
+<span class="ok">HTTP/2 403
+{"error":{"codigo":"NO_AUTORIZADO","mensaje":"Permiso insuficiente"}}</span>
+
+$ curl -i -X DELETE https://ingweb3.agustinynatalia.site/api/citas/c_d7b8ef0e \
+       -H "Authorization: Bearer $PTOKEN"
+<span class="ok">HTTP/2 403
+{"error":{"codigo":"NO_AUTORIZADO","mensaje":"No puedes cancelar esa cita"}}</span></pre>
+
+          <h2 id="cambios">5. Cambios aplicados al backend</h2>
+          <table>
+            <thead><tr><th>#</th><th>Cambio</th><th>Brecha que cierra</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><code>helmet()</code> con CSP, HSTS, X-Frame, X-Content-Type-Options, Referrer-Policy</td><td>A05 + CORS</td></tr>
+              <tr><td>2</td><td><code>app.disable('x-powered-by')</code></td><td>A05 (fingerprinting)</td></tr>
+              <tr><td>3</td><td><code>express-rate-limit</code> (5/min) en <code>/auth/login</code> y <code>/auth/register</code></td><td>A07</td></tr>
+              <tr><td>4</td><td><code>cors()</code> con allowlist por env <code>CORS_ORIGINS</code></td><td>CORS abierto</td></tr>
+              <tr><td>5</td><td><code>bcrypt</code> (cost=10) reemplaza SHA-256, con migración silenciosa al primer login</td><td>A02</td></tr>
+              <tr><td>6</td><td><code>crypto.timingSafeEqual</code> + <code>bcrypt.compare</code> dummy cuando el email no existe</td><td>Timing attack / enumeración</td></tr>
+              <tr><td>7</td><td><code>express.json({ limit: '10kb' })</code> + validación de longitud por campo</td><td>DoS por payload</td></tr>
+              <tr><td>8</td><td>Manejador global de errores que no filtra <code>stack</code> en producción</td><td>A05</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <div>
+              <strong>Dependencias añadidas a <code>server/package.json</code>:</strong>
+              <code>bcrypt ^6.0.0</code>, <code>helmet ^8.1.0</code>, <code>express-rate-limit ^8.5.2</code>.
+              <code>npm audit</code> reporta <strong>0 vulnerabilidades</strong>.
+            </div>
+          </div>
+
+          <h2 id="funcionalidad">6. Funcionalidad verificada tras el hardening</h2>
+          <p>Capturas tomadas con Playwright + Chromium portable contra el backend hardened — la app sigue funcional sin cambios visibles para el usuario.</p>
+
+          <h3>6.1 Vista pública</h3>
+          <div class="gallery">
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/01_login.png" alt="Vista de inicio de sesión" />
+              <figcaption>Figura 3. Login.</figcaption>
+            </figure>
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/02_register.png" alt="Vista de registro" />
+              <figcaption>Figura 4. Registro de paciente.</figcaption>
+            </figure>
+          </div>
+
+          <h3>6.2 Panel administrativo</h3>
+          <div class="gallery">
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/03_admin_panel.png" alt="Panel administrativo - todas las citas" />
+              <figcaption>Figura 5. Admin — todas las citas.</figcaption>
+            </figure>
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/04_admin_medicos.png" alt="Panel administrativo - médicos" />
+              <figcaption>Figura 6. Admin — gestión de médicos.</figcaption>
+            </figure>
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/05_admin_reportes.png" alt="Panel administrativo - reportes" />
+              <figcaption>Figura 7. Admin — reportes.</figcaption>
+            </figure>
+          </div>
+
+          <h3>6.3 Flujo paciente</h3>
+          <div class="gallery">
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/06_dashboard_paciente_vacio.png" alt="Dashboard paciente sin citas" />
+              <figcaption>Figura 8. Dashboard paciente (sin citas previas).</figcaption>
+            </figure>
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/07_agendar_vacio.png" alt="Formulario de agendar vacío" />
+              <figcaption>Figura 9. Agendar — formulario inicial.</figcaption>
+            </figure>
+            <figure class="sec-cap">
+              <img src="capturas-seguridad/08_agendar_con_slots.png" alt="Slots disponibles para agendar" />
+              <figcaption>Figura 10. Agendar — slots disponibles cargados desde el backend hardened.</figcaption>
+            </figure>
+          </div>
+
+          <h2 id="deuda">7. Brechas que quedan abiertas (deuda documentada)</h2>
+          <ol>
+            <li><strong>A09 — Logging estructurado.</strong> Sin implementar. Plan: <code>pino</code> + endpoint <code>/api/admin/auditoria</code>.</li>
+            <li><strong>Token en <code>localStorage</code>.</strong> Vulnerable a XSS. Mitigación futura: cookie <code>HttpOnly</code> + <code>SameSite=Strict</code>.</li>
+            <li><strong>Verificación de email en registro.</strong> No existe — cualquiera puede registrarse con cualquier email.</li>
+            <li><strong>Token revocation centralizada.</strong> <code>Map</code> en memoria — un reinicio invalida todos los tokens. Aceptable para demo, no para producción real.</li>
+            <li><strong>Persistencia en JSON.</strong> Sin transacciones, sin backup, sin cifrado en reposo. Migración futura a SQLite/Postgres.</li>
+            <li><strong>Hardening del frontend.</strong> La SPA usa <code>innerHTML</code> con <code>escapeHtml</code>. Migrar a <code>textContent</code> o a plantillas para que sea difícil olvidarlo.</li>
+          </ol>
+
+          <h2 id="reproducir">8. Reproducir esta investigación</h2>
+<pre><code># 1. Levantar backend hardened
+cd server &amp;&amp; npm install
+PORT=3030 NODE_ENV=development node server.js
+
+# 2. Servidor estático del frontend (otra terminal)
+python3 -m http.server 8080
+
+# 3. Generar las capturas (otra terminal)
+cd scripts &amp;&amp; npm install
+node capturas.mjs
+# Salida: docs/seguridad/capturas/*.png
+
+# 4. Repetir pruebas curl
+# Ver docs/seguridad/evidencia/*.txt para los comandos completos</code></pre>
+
+          <h2 id="conclusion">9. Conclusión</h2>
+          <p>
+            El sistema <strong>antes del hardening</strong> declaraba un modelo OWASP-compliant que en realidad cubría 4 de 10 controles.
+            <strong>Después del hardening</strong> cubre 8 de 10, y las dos restantes (A09 logging, mejora del almacenamiento de token) están documentadas como deuda con plan concreto.
+          </p>
+          <p>
+            La lección de ingeniería: cada decisión de seguridad documentada en una entrega debe poder reproducirse con un comando o una captura.
+            Esta iteración convierte el entregable previo en una <em>auditoría auditada</em>.
+          </p>
+
+          <div class="callout">
+            <div>
+              <strong>Documento fuente:</strong> <code>docs/seguridad/investigacion-seguridad.md</code>.
+              <strong>Evidencia cruda:</strong> <code>docs/seguridad/evidencia/*.txt</code>.
+              <strong>Capturas:</strong> <code>docs/seguridad/capturas/*.png</code> (también en <code>public/entregables/capturas-seguridad/</code>).
+            </div>
+          </div>
+
+          <div class="callout">
+            <div>
+              <strong>Volver:</strong>
+              <a href="./06-seguridad.html">Fase 5 — Seguridad web</a> ·
+              <a href="../index.html">Portal de entregables</a>
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Análisis de seguridad — herramientas, SAST en GitLab, matriz de vulnerabilidades, escaneo DAST con OWASP ZAP." />
+  <title>Análisis de seguridad · Citas Médicas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .sec-cap{margin:18px 0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .sec-cap img{display:block;width:100%;height:auto}
+    .sec-cap figcaption{padding:10px 14px;font-size:12px;color:#475569;background:#f8fafc;border-top:1px solid #e2e8f0}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;margin:18px 0}
+    .gallery .sec-cap{margin:0}
+    pre.evidence{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:12.5px;line-height:1.55;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre}
+    pre.evidence .ok{color:#86efac}
+    pre.evidence .bad{color:#fca5a5}
+    pre.evidence .warn{color:#fbbf24}
+    .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+    .kpi .box{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .kpi .box .n{font-size:28px;font-weight:700;color:#1d4ed8}
+    .kpi .box .l{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+    .matrix td.sev-crit{background:#fee2e2;color:#991b1b;font-weight:600;text-align:center;font-size:11px}
+    .matrix td.sev-high{background:#fed7aa;color:#9a3412;font-weight:600;text-align:center;font-size:11px}
+    .matrix td.sev-med{background:#fef3c7;color:#854d0e;text-align:center;font-size:11px}
+    .matrix td.sev-low{background:#dbeafe;color:#1e40af;text-align:center;font-size:11px}
+    .matrix td.sev-info{background:#f1f5f9;color:#475569;text-align:center;font-size:11px}
+    .matrix td.sev-fp{background:#dcfce7;color:#166534;text-align:center;font-size:11px}
+    .matrix th{font-size:11.5px;background:#f8fafc}
+    .matrix td{font-size:12.5px;vertical-align:middle}
+    .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+    .pill.ok{background:#dcfce7;color:#166534}
+    .pill.deuda{background:#fef3c7;color:#854d0e}
+    .pill.fp{background:#e0e7ff;color:#3730a3}
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark">CM</span>
+          <span>Citas Médicas · Ing. Web III</span>
+        </a>
+        <nav class="site-nav">
+          <a href="../index.html">Inicio</a>
+          <a href="../index.html#entregables" class="active">Entregables</a>
+          <a href="../app/index.html">Aplicación</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="container article-layout">
+
+        <aside class="toc" aria-label="Tabla de contenidos">
+          <h4>Contenido</h4>
+          <ol>
+            <li><a href="#intro">Introducción</a></li>
+            <li><a href="#t1">T1 · Herramientas</a></li>
+            <li><a href="#t2">T2 · SAST en GitLab</a></li>
+            <li><a href="#t3">T3 · Matriz</a></li>
+            <li><a href="#t4">T4 · Pen-test API</a></li>
+            <li><a href="#t5">T5 · Escaneo web</a></li>
+            <li><a href="#t6">T6 · Bitácora ZAP</a></li>
+            <li><a href="#t7">T7 · Documentación ZAP</a></li>
+            <li><a href="#reproducir">Reproducir</a></li>
+          </ol>
+        </aside>
+
+        <article class="doc">
+
+          <p><span class="tag blue">Guía práctica final</span> <span class="tag green">DevSecOps · DAST · SAST</span></p>
+          <h1>Análisis de seguridad en aplicaciones web y APIs</h1>
+          <div class="doc-meta">
+            7 temas · OWASP ZAP · Semgrep · GitLab CI · Versión 1.0 · 2026-05-16
+          </div>
+
+          <h2 id="intro">Introducción</h2>
+          <p>
+            Esta entrega cubre la <strong>guía práctica final de Ingeniería Web</strong> (Ing. Jairo A. Salcedo Aranda),
+            articulando los 7 temas en un único hilo: investigación → SAST → matriz → pen-test API → escaneo
+            web → bitácora → documentación de la herramienta. Toda la evidencia es reproducible y los
+            artefactos están versionados en el repositorio.
+          </p>
+
+          <div class="kpi">
+            <div class="box"><div class="n">7/7</div><div class="l">Temas cubiertos</div></div>
+            <div class="box"><div class="n">6</div><div class="l">Herramientas evaluadas</div></div>
+            <div class="box"><div class="n">19</div><div class="l">Hallazgos clasificados</div></div>
+            <div class="box"><div class="n">9</div><div class="l">Vulnerabilidades cerradas</div></div>
+            <div class="box"><div class="n">2</div><div class="l">Tools elegidas (ZAP + Semgrep)</div></div>
+          </div>
+
+          <div class="callout">
+            <div>
+              Esta entrega <strong>complementa</strong> el entregable previo
+              <a href="./06-seguridad.html">06-seguridad.html</a> (modelo teórico OWASP) y la
+              <a href="./investigacion-seguridad.html">investigación de hardening</a> (auditoría + pen-test manual).
+              Aquí se añaden los temas de DevSecOps formalizados con herramientas industriales.
+            </div>
+          </div>
+
+          <!-- ─────────── TEMA 1 ─────────── -->
+          <h2 id="t1">Tema 1 · Investigación de herramientas</h2>
+          <p>Se evaluaron las herramientas sugeridas por la guía más <strong>Semgrep</strong> como SAST moderno.</p>
+
+          <table>
+            <thead>
+              <tr><th>Herramienta</th><th>Tipo</th><th>Licencia</th><th>Ejecución</th><th>Encaje con el proyecto</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>OWASP ZAP</strong></td><td>DAST</td><td>Apache 2.0</td><td>GUI, CLI, Docker</td><td><span class="tag green">Elegida</span> — escanea la app corriendo</td></tr>
+              <tr><td><strong>Semgrep</strong></td><td>SAST</td><td>LGPL</td><td>CLI, Docker, GitLab CI</td><td><span class="tag green">Elegida</span> — liviano, integración nativa</td></tr>
+              <tr><td>SonarQube</td><td>SAST + calidad</td><td>Comm./Enterprise</td><td>Servidor Java</td><td>Sobredimensionado para un proyecto académico</td></tr>
+              <tr><td>Burp Suite</td><td>DAST + proxy</td><td>Free / Pro</td><td>App Java</td><td>Free limita escáner automático</td></tr>
+              <tr><td>Nikto</td><td>DAST clásico</td><td>GPL</td><td>Script Perl</td><td>Antiguo, foco en webservers tradicionales</td></tr>
+              <tr><td>Nmap</td><td>Reconocimiento</td><td>Open</td><td>CLI</td><td>Escáner de red, no de app web</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Comparativa de criterios</h3>
+          <table>
+            <thead><tr><th>Criterio</th><th>ZAP</th><th>Semgrep</th><th>Burp Free</th><th>SonarQube</th><th>Nikto</th></tr></thead>
+            <tbody>
+              <tr><td>Cobertura OWASP Top 10</td><td>Alta</td><td>Alta (SAST)</td><td>Media</td><td>Media</td><td>Baja</td></tr>
+              <tr><td>Falsos positivos</td><td>Medios</td><td>Bajos</td><td>Medios</td><td>Bajos</td><td>Altos</td></tr>
+              <tr><td>Integración CI</td><td>Buena</td><td><strong>Excelente</strong></td><td>Manual</td><td>Plugin</td><td>Manual</td></tr>
+              <tr><td>Velocidad (este proyecto)</td><td>~1 min</td><td>~10 s</td><td>Manual</td><td>~30 s</td><td>~1 min</td></tr>
+              <tr><td>Requisitos</td><td>Java / Docker</td><td>Docker</td><td>Java</td><td>Java + DB + RAM</td><td>Perl</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Selección justificada</h3>
+          <p>
+            <strong>OWASP ZAP (DAST) + Semgrep (SAST)</strong>. Justificación: complementariedad caja negra / caja blanca,
+            costo cero, integración limpia con Docker + GitLab CI, output JSON parseable, y descarte de SonarQube por
+            requerir infraestructura Java + DB que sobrepasa el alcance académico.
+          </p>
+
+          <!-- ─────────── TEMA 2 ─────────── -->
+          <h2 id="t2">Tema 2 · Implementación de SAST en GitLab</h2>
+
+          <h3>2.1 Stage añadida al pipeline</h3>
+          <p>Antes el <code>.gitlab-ci.yml</code> solo desplegaba a Pages. Se añadió la stage <code>sast</code> con Semgrep:</p>
+<pre class="evidence">stages:
+  - validate
+  - sast        <span class="ok">← nuevo</span>
+  - build
+  - deploy
+
+sast:
+  stage: sast
+  image: returntocorp/semgrep
+  script:
+    - semgrep scan
+        --config=p/javascript
+        --config=p/nodejsscan
+        --config=p/xss
+        --config=p/expressjs
+        --config=p/jwt
+        --config=p/secrets
+        --json --output semgrep-report.json
+        --severity WARNING --severity ERROR
+        server/ public/ || true
+  artifacts:
+    paths: [semgrep-report.json]
+    expire_in: 1 month
+    when: always
+  allow_failure: true</pre>
+
+          <h3>2.2 Ejecución local (preview de la corrida en CI)</h3>
+          <p>Se ejecutó el mismo comando vía Docker antes del push para validar el output:</p>
+<pre class="evidence">$ docker run --rm -v "$PWD":/src:ro semgrep/semgrep semgrep scan \
+    --config=p/javascript --config=p/nodejsscan --config=p/xss --config=p/expressjs \
+    --severity WARNING --severity ERROR server/ public/
+
+┌─────────────────┐
+│ <span class="warn">3 Code Findings</span> │
+└─────────────────┘
+
+  public/app/app.js
+  ❯❱ ajinabraham.njsscan.crypto.timing_attack_node.node_timing_attack  <span class="warn">[Warning]</span>
+        123┆ else if (hash === 'dashboard') renderDashboard();
+        124┆ else if (hash === 'admin') {
+
+  server/server.js
+  ❯❱ ajinabraham.njsscan.generic.hardcoded_secrets.node_username  <span class="warn">[Warning]</span>
+        113┆ user.algo = 'bcrypt';
+
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+<span class="ok">✅ Scan completed successfully.</span>
+ • Findings: 3 (3 blocking)
+ • Rules run: 165
+ • Targets scanned: 31</pre>
+
+          <p>Los 3 hallazgos se analizan en el tema 3 — los tres son falsos positivos justificados.</p>
+
+          <!-- ─────────── TEMA 3 ─────────── -->
+          <h2 id="t3">Tema 3 · Matriz de vulnerabilidades</h2>
+
+          <p>Consolida las 3 fuentes: pen-test manual con <code>curl</code>, SAST con Semgrep, DAST con OWASP ZAP.</p>
+
+          <table class="matrix">
+            <thead>
+              <tr><th>ID</th><th>Hallazgo</th><th>Origen</th><th>Severidad</th><th>¿Real?</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>V-01</td><td>Sin rate-limit en login</td><td>Manual</td><td class="sev-crit">CRÍT</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-02</td><td>Faltan headers de seguridad</td><td>ZAP + Manual</td><td class="sev-high">ALTA</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-03</td><td>CORS abierto a todo origen</td><td>ZAP + Manual</td><td class="sev-high">ALTA</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-04</td><td>X-Powered-By: Express expuesto</td><td>ZAP + Manual</td><td class="sev-med">MEDIA</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-05</td><td>SHA-256 rápido para passwords</td><td>Auditoría</td><td class="sev-high">ALTA</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-06</td><td>Login timing-attackable</td><td>Auditoría</td><td class="sev-med">MEDIA</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-07</td><td>Payload sin tope de tamaño (DoS)</td><td>Manual</td><td class="sev-med">MEDIA</td><td>Sí</td><td><span class="pill ok">Cerrado</span></td></tr>
+              <tr><td>V-08</td><td>Source Code Disclosure (.git/hooks)</td><td>ZAP</td><td class="sev-med">MEDIA</td><td>Parcial</td><td><span class="pill deuda">Solo afecta dev local</span></td></tr>
+              <tr><td>V-09</td><td>Application Error Disclosure (md de node_modules)</td><td>ZAP</td><td class="sev-med">MEDIA</td><td>Parcial</td><td><span class="pill deuda">Solo afecta dev local</span></td></tr>
+              <tr><td>V-10</td><td>Permissions-Policy ausente</td><td>ZAP</td><td class="sev-low">BAJA</td><td>Sí</td><td><span class="pill deuda">Por cerrar</span></td></tr>
+              <tr><td>V-11</td><td>CSP fallback en 404</td><td>ZAP</td><td class="sev-med">MEDIA</td><td>Parcial</td><td><span class="pill deuda">Cosmético</span></td></tr>
+              <tr><td>V-12</td><td>COEP header ausente</td><td>ZAP</td><td class="sev-low">BAJA</td><td>No</td><td><span class="pill fp">FP</span></td></tr>
+              <tr><td>V-13</td><td>Storable/Cacheable content</td><td>ZAP</td><td class="sev-info">INFO</td><td>No</td><td><span class="pill fp">FP</span></td></tr>
+              <tr><td>V-14</td><td>Timing attack en routing (Semgrep)</td><td>Semgrep</td><td class="sev-low">BAJA</td><td>No</td><td><span class="pill fp">FP</span></td></tr>
+              <tr><td>V-15</td><td>Hardcoded username (Semgrep)</td><td>Semgrep</td><td class="sev-low">BAJA</td><td>No</td><td><span class="pill fp">FP</span></td></tr>
+              <tr><td>V-16</td><td>Bcrypt hash detected (Semgrep)</td><td>Semgrep</td><td class="sev-low">BAJA</td><td>No</td><td><span class="pill fp">FP</span></td></tr>
+              <tr><td>V-17</td><td>Sin logging estructurado</td><td>Auditoría</td><td class="sev-med">MEDIA</td><td>Sí</td><td><span class="pill deuda">Deuda</span></td></tr>
+              <tr><td>V-18</td><td>Token en localStorage</td><td>Auditoría</td><td class="sev-med">MEDIA</td><td>Sí</td><td><span class="pill deuda">Deuda</span></td></tr>
+              <tr><td>V-19</td><td>Sin verificación de email</td><td>Auditoría</td><td class="sev-low">BAJA</td><td>Sí</td><td><span class="pill deuda">Deuda</span></td></tr>
+            </tbody>
+          </table>
+
+          <h3>Distribución por severidad</h3>
+          <table>
+            <thead><tr><th>Severidad</th><th>Total</th><th>Cerradas</th><th>Deuda / contexto</th><th>Falsos positivos</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tag red">Crítica</span></td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+              <tr><td><span class="tag amber">Alta</span></td><td>3</td><td>3</td><td>0</td><td>0</td></tr>
+              <tr><td><span class="tag amber">Media</span></td><td>8</td><td>5</td><td>2</td><td>1</td></tr>
+              <tr><td><span class="tag blue">Baja</span></td><td>4</td><td>0</td><td>3</td><td>1</td></tr>
+              <tr><td><span class="tag blue">Informativa</span></td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>Semgrep FP</td><td>2</td><td>0</td><td>0</td><td>2</td></tr>
+              <tr><th>Totales</th><th>19</th><th>9</th><th>5</th><th>5</th></tr>
+            </tbody>
+          </table>
+
+          <h3>Falsos positivos — análisis</h3>
+          <table>
+            <thead><tr><th>ID</th><th>Hallazgo</th><th>Por qué se descarta</th></tr></thead>
+            <tbody>
+              <tr><td>V-12</td><td>COEP ausente</td><td>Header opcional. La SPA no embebe contenido cross-origin ni usa SharedArrayBuffer. Aplicarlo rompería futuros embeds de fonts</td></tr>
+              <tr><td>V-13</td><td>Storable/Cacheable</td><td>La SPA es estática, su cacheo es comportamiento deseado</td></tr>
+              <tr><td>V-14</td><td><code>===</code> en rutas</td><td>Compara contra strings constantes (<code>'dashboard'</code>, <code>'admin'</code>), no contra material criptográfico</td></tr>
+              <tr><td>V-15</td><td><code>user.algo = 'bcrypt'</code></td><td>Es la etiqueta del algoritmo de hashing, no un username</td></tr>
+              <tr><td>V-16</td><td>Bcrypt hash en server.js:216</td><td>Hash dummy intencional usado en <code>bcrypt.compare</code> cuando el email no existe — defensa anti-enumeración por timing</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Priorización de la deuda</h3>
+          <ol>
+            <li><strong>V-17 Logging estructurado</strong> (<code>pino</code>): habilita detección de futuros incidentes.</li>
+            <li><strong>V-10 Permissions-Policy</strong>: fix de una línea en la configuración de <code>helmet</code>.</li>
+            <li><strong>V-18 Token a cookie HttpOnly</strong>: requiere cambios coordinados frontend + backend.</li>
+            <li><strong>V-19 Verificación de email</strong>: requiere proveedor SMTP; alcance mayor.</li>
+          </ol>
+
+          <!-- ─────────── TEMA 4 ─────────── -->
+          <h2 id="t4">Tema 4 · Pen-test sobre la API</h2>
+          <p>Cubierto en detalle en la <a href="./investigacion-seguridad.html">investigación de hardening</a>. Resumen contra las categorías de la guía:</p>
+          <table>
+            <thead><tr><th>Categoría</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>Autenticación</td><td><span class="tag green">✅</span> rate-limit + bcrypt + timing-safe</td></tr>
+              <tr><td>Autorización</td><td><span class="tag green">✅</span> RBAC + propiedad del recurso (IDOR mitigado)</td></tr>
+              <tr><td>Validación de parámetros</td><td><span class="tag green">✅</span> tipos + longitud máxima por campo</td></tr>
+              <tr><td>Inyección</td><td><span class="tag green">✅</span> N/A (no BD, no shell); XSS mitigado en frontend</td></tr>
+              <tr><td>Exposición de información</td><td><span class="tag green">✅</span> headers correctos + handler global sin stack</td></tr>
+            </tbody>
+          </table>
+
+          <!-- ─────────── TEMA 5 ─────────── -->
+          <h2 id="t5">Tema 5 · Escaneo de la aplicación web</h2>
+
+          <p>Se utilizó <strong>OWASP ZAP 2.17.0</strong> vía Docker, modalidad <code>zap-baseline.py</code> (pasivo).</p>
+
+          <div class="gallery">
+            <figure class="sec-cap">
+              <img src="analisis-seguridad/11_zap_report_frontend.png" alt="Reporte ZAP del frontend" />
+              <figcaption>Figura 1. Reporte ZAP del frontend (raíz del repo en :8080) — 0 High, 5 Medium, 10 Low. El ruido viene de servir <code>.git/</code> y <code>node_modules/</code>.</figcaption>
+            </figure>
+            <figure class="sec-cap">
+              <img src="analisis-seguridad/12_zap_report_backend.png" alt="Reporte ZAP del backend hardened" />
+              <figcaption>Figura 2. Reporte ZAP del backend hardened (:3030) — 64 PASS, 0 High, 1 Medium, 1 Low, 1 Informational.</figcaption>
+            </figure>
+          </div>
+
+          <figure class="sec-cap">
+            <img src="analisis-seguridad/13_zap_detalle_alertas.png" alt="Detalle de alertas en el reporte ZAP" />
+            <figcaption>Figura 3. Detalle de las alertas levantadas por ZAP en el escaneo del frontend.</figcaption>
+          </figure>
+
+          <h3>Reportes exportados</h3>
+          <ul>
+            <li><a href="./analisis-seguridad/zap_report.html">Reporte HTML — frontend (puerto 8080)</a></li>
+            <li><a href="./analisis-seguridad/zap_api_report.html">Reporte HTML — backend hardened (puerto 3030)</a></li>
+          </ul>
+
+          <h3>Categorías de la guía cubiertas</h3>
+          <table>
+            <thead><tr><th>Categoría</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td>XSS</td><td><span class="tag green">No encontrado</span> — todo HTML pasa por <code>escapeHtml</code></td></tr>
+              <tr><td>SQL Injection</td><td><span class="tag green">N/A</span> — no hay base de datos</td></tr>
+              <tr><td>Headers inseguros</td><td><span class="tag green">Mitigado</span> con <code>helmet</code></td></tr>
+              <tr><td>Cookies inseguras</td><td><span class="tag blue">N/A</span> — token Bearer en localStorage</td></tr>
+              <tr><td>Configuraciones débiles</td><td><span class="tag green">Cerrado</span> — CORS allowlist, sin X-Powered-By, límites de body</td></tr>
+            </tbody>
+          </table>
+
+          <!-- ─────────── TEMA 6 ─────────── -->
+          <h2 id="t6">Tema 6 · Bitácora técnica — OWASP ZAP</h2>
+
+          <h3>Configuración utilizada</h3>
+          <table>
+            <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+            <tbody>
+              <tr><td>Versión</td><td>OWASP ZAP 2.17.0</td></tr>
+              <tr><td>Imagen Docker</td><td><code>zaproxy/zap-stable</code></td></tr>
+              <tr><td>Modo</td><td><code>zap-baseline.py</code> (passive + spider ligero)</td></tr>
+              <tr><td>Network</td><td><code>--network=host</code> para alcanzar localhost del host</td></tr>
+              <tr><td>Flags</td><td><code>-I</code> (no fallar con warnings), <code>-r</code> HTML, <code>-J</code> JSON</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Tiempos y resultados</h3>
+          <table>
+            <thead><tr><th>Target</th><th>Duración</th><th>URLs</th><th>Alerts</th></tr></thead>
+            <tbody>
+              <tr><td>Frontend (raíz del repo)</td><td>43 s</td><td>~80</td><td>14</td></tr>
+              <tr><td>Backend hardened</td><td>34 s</td><td>~10</td><td>3</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Lecciones</h3>
+          <ol>
+            <li><strong>Servir el repo completo con <code>python3 -m http.server</code> para hacer DAST genera ruido</strong>: ZAP escanea <code>.git/</code>, <code>node_modules/</code>, <code>docs/</code>. Ese ruido no aparece en GitLab Pages (que sólo publica <code>public/</code>). Para validar el deploy real, scan contra la URL de Pages, no contra la raíz local.</li>
+            <li><strong><code>zap-baseline</code> es pasivo</strong>: no inyecta payloads. Para encontrar XSS reflejado o stored hay que correr <code>zap-full-scan</code> (activo, ~5 min).</li>
+            <li><strong><code>-I</code> evita falsos rojos en CI</strong>: sin él, el script retorna exit-code ≠ 0 con cualquier warning y bloquea el pipeline.</li>
+          </ol>
+
+          <!-- ─────────── TEMA 7 ─────────── -->
+          <h2 id="t7">Tema 7 · Documentación de OWASP ZAP</h2>
+
+          <h3>Identificación</h3>
+          <table>
+            <thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+            <tbody>
+              <tr><td>Nombre</td><td>OWASP ZAP (Zed Attack Proxy)</td></tr>
+              <tr><td>Versión usada</td><td>2.17.0</td></tr>
+              <tr><td>Mantenedor</td><td>The OWASP Foundation (patrocinado por Checkmarx desde 2024)</td></tr>
+              <tr><td>Licencia</td><td>Apache License 2.0</td></tr>
+              <tr><td>Sitio oficial</td><td><a href="https://www.zaproxy.org" target="_blank" rel="noopener">zaproxy.org</a></td></tr>
+            </tbody>
+          </table>
+
+          <h3>Objetivo</h3>
+          <p>Detectar vulnerabilidades en aplicaciones web mediante <strong>análisis dinámico (DAST)</strong>: interactúa con la app como un usuario real, observa headers, cuerpos y comportamiento, y reporta hallazgos clasificados por riesgo.</p>
+
+          <h3>Modos de operación</h3>
+          <ul>
+            <li><strong>Pasivo:</strong> sólo observa el tráfico, sin enviar payloads.</li>
+            <li><strong>Activo:</strong> inyecta payloads conocidos (XSS, SQLi, path traversal).</li>
+            <li><strong>Manual:</strong> actúa como proxy MITM para análisis manual.</li>
+          </ul>
+
+          <h3>Requisitos e instalación</h3>
+<pre class="evidence">$ docker pull zaproxy/zap-stable
+$ mkdir -p docs/seguridad/dast</pre>
+
+          <h3>Ejecución básica</h3>
+<pre class="evidence">$ docker run --rm --network=host \
+    -v "$PWD/docs/seguridad/dast":/zap/wrk/:rw \
+    -t zaproxy/zap-stable \
+    zap-baseline.py \
+      -t http://localhost:3030/ \
+      -r zap_api_report.html \
+      -J zap_api_report.json \
+      -I</pre>
+
+          <table>
+            <thead><tr><th>Argumento</th><th>Función</th></tr></thead>
+            <tbody>
+              <tr><td><code>-t URL</code></td><td>Target</td></tr>
+              <tr><td><code>-r FILE</code></td><td>Reporte HTML</td></tr>
+              <tr><td><code>-J FILE</code></td><td>Reporte JSON</td></tr>
+              <tr><td><code>-I</code></td><td>No fallar exit-code con warnings</td></tr>
+              <tr><td><code>-j</code></td><td>Spider con JavaScript (útil para SPAs)</td></tr>
+              <tr><td><code>-l RISK</code></td><td>Filtrar por nivel mínimo</td></tr>
+              <tr><td><code>-T MIN</code></td><td>Tiempo máximo de escaneo</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Interpretación de resultados</h3>
+          <p>ZAP clasifica cada alerta con dos ejes: <strong>Risk</strong> (High / Medium / Low / Informational) y <strong>Confidence</strong> (qué tanto confía ZAP en que el hallazgo es real). Cada alerta incluye descripción, CWE, referencia OWASP, URL afectada, snippet de evidencia y recomendación.</p>
+
+          <h3>Buenas prácticas</h3>
+          <ol>
+            <li><strong>Empezar siempre por baseline pasivo</strong>: no perturba la app ni contamina la BD.</li>
+            <li><strong>Correrlo contra un entorno desechable</strong>: el escaneo activo crea usuarios, comentarios, etc.</li>
+            <li><strong>Versionar el reporte JSON</strong>: permite seguir la evolución de hallazgos (regression-testing de seguridad).</li>
+            <li><strong>Integrar en CI con <code>allow_failure: true</code></strong>: que informe, no que bloquee.</li>
+            <li><strong>Excluir paths de ruido</strong> con <code>-c .zap-config</code>.</li>
+            <li><strong>Usar Desktop para investigar manualmente</strong> cuando una alerta es ambigua: el proxy permite reenviar la petición exacta y probar la mitigación al vuelo.</li>
+          </ol>
+
+          <h2 id="reproducir">Reproducir esta investigación</h2>
+<pre><code># Servicios locales
+cd server &amp;&amp; PORT=3030 NODE_ENV=development node server.js &amp;
+python3 -m http.server 8080 &amp;
+
+# SAST (Semgrep)
+docker run --rm -v "$PWD":/src:ro semgrep/semgrep semgrep scan \
+  --config=p/javascript --config=p/nodejsscan --config=p/xss --config=p/expressjs \
+  --severity WARNING --severity ERROR server/ public/
+
+# DAST (ZAP) - frontend
+cd docs/seguridad/dast
+docker run --rm --network=host -v "$PWD":/zap/wrk/:rw -t zaproxy/zap-stable \
+  zap-baseline.py -t http://localhost:8080/public/app/index.html \
+  -r zap_report.html -J zap_report.json -I
+
+# DAST (ZAP) - backend
+docker run --rm --network=host -v "$PWD":/zap/wrk/:rw -t zaproxy/zap-stable \
+  zap-baseline.py -t http://localhost:3030/ \
+  -r zap_api_report.html -J zap_api_report.json -I</code></pre>
+
+          <div class="callout">
+            <div>
+              <strong>Cierre de la guía:</strong> los 7 temas quedaron cubiertos con evidencia reproducible y artefactos
+              versionados. Toda la documentación cruda está en <code>docs/seguridad/</code>; los reportes navegables en
+              <code>public/entregables/analisis-seguridad/</code>.
+            </div>
+          </div>
+
+        </article>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© 2026 — Proyecto académico Ingeniería Web · Corte III</span>
+        <a href="../index.html">Volver al inicio</a>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

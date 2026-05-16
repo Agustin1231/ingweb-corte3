@@ -1,0 +1,8 @@
+===== npm audit del backend (sáb 16 may 2026 14:37:21 -05) =====
+found 0 vulnerabilities
+
+===== Versiones instaladas =====
+ingweb-citas-api@1.0.0 /home/agustin/proyectos/ingweb-corte3/server
+├── cors@2.8.6
+└── express@4.22.2
+

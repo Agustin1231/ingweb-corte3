@@ -1,0 +1,34 @@
+===== TEST 1: Login con email inexistente =====
+HTTP/2 401 
+date: Sat, 16 May 2026 19:32:21 GMT
+content-type: application/json; charset=utf-8
+content-length: 102
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"66-xjimKXwyy1bw9IoI6E5PATwG6WI"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=x4YIhVjvcLzu%2F%2FBJIci%2FfHXo3rWTz4sx%2BQxo3hLbUmj50x4bKb7tkV%2FIQ11cPM%2FbNNwehANv4nAMyi1WOIWvbUyJ9qxmw6HFirz8UF2WgvsYTyf68l%2Bcx0gROaopyULJ7bQiOldXeo%2FvAASEggNl"}]}
+server: cloudflare
+cf-ray: 9fccced2de7de8e8-MIA
+
+{"error":{"codigo":"CREDENCIALES_INVALIDAS","mensaje":"Email o contrasena incorrectos","detalles":{}}}
+===== TEST 2: Login admin con password incorrecto =====
+HTTP/2 401 
+date: Sat, 16 May 2026 19:32:22 GMT
+content-type: application/json; charset=utf-8
+content-length: 102
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+etag: W/"66-xjimKXwyy1bw9IoI6E5PATwG6WI"
+vary: Accept-Encoding
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=1kaXDbZpdLuUCDHZe7YXEwnMDwn%2BEP6XaNAfU%2BFuZc%2FHdYQ5swxuy23A%2B4okHV3UGOhdj5%2BII8wpIw%2FFi9uulk0gyyNuMkKkFONnt7TFkchkzn9JI%2FaEUQpCiy4V2XRkeZNxamqlMNZy3QtjuY4T"}]}
+server: cloudflare
+cf-ray: 9fccced5bafd2876-MIA
+
+{"error":{"codigo":"CREDENCIALES_INVALIDAS","mensaje":"Email o contrasena incorrectos","detalles":{}}}

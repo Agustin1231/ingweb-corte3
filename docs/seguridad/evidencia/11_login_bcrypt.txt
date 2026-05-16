@@ -1,0 +1,6 @@
+===== POST: Login admin con bcrypt =====
+{"token":"78322454-8a64-452a-9b64-c6a7bc11ea33","expiresIn":3600,"user":{"id":"u_admin","nombre":"Admin Demo","email":"admin@clinica.com","rol":"admin","creado_en":"2026-05-16T19:39:41.726Z"}}
+
+===== POST: Algoritmo en data.json (debe ser bcrypt) =====
+  user=admin@clinica.com          algo=bcrypt  hash_prefix=$2b$10$Zz9...
+  user=staff@clinica.com          algo=bcrypt  hash_prefix=$2b$10$5is...

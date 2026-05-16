@@ -1,0 +1,20 @@
+===== TEST: CORS abierto desde origen arbitrario =====
+Request:
+  OPTIONS /api/auth/login con Origin: https://evil.example.com
+
+Response headers:
+HTTP/2 204 
+date: Sat, 16 May 2026 19:33:10 GMT
+access-control-allow-headers: Content-Type
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+alt-svc: h3=":443"; ma=86400
+vary: Accept-Encoding
+vary: Access-Control-Request-Headers
+x-powered-by: Express
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=QuYz1dxLz41Gp1C2TB00Kyys80PE8TM7dVKMIwN0SQSPZu4OHRU7XHIqCBzZ847aTL82KBj8o1lPWHe3P1hNffw6GO3A0XefoXIMaec3rR46N4Jg%2FmkYCKbGspdxLc9dNo%2BQEXXtQ4OqZlfce3QA"}]}
+server: cloudflare
+cf-ray: 9fccd003ba719614-MIA
+

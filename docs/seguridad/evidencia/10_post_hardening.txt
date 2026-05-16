@@ -1,0 +1,85 @@
+===== POST: Headers de seguridad =====
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'self';img-src 'self' data:;style-src 'self' 'unsafe-inline';script-src 'self';connect-src 'self' https://ingweb3.agustinynatalia.site;frame-ancestors 'none';object-src 'none';base-uri 'self';font-src 'self' https: data:;form-action 'self';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Content-Type: application/json; charset=utf-8
+Content-Length: 58
+ETag: W/"3a-ltY9M/79mP2l/zbt5EbTPjD2f5Q"
+Date: Sat, 16 May 2026 19:40:34 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"ok":true,"name":"ingweb-citas-api","endpoints":"/api/*"}
+===== POST: Rate-limit en /auth/login (10 intentos en rafaga) =====
+Intento 1 -> HTTP 401
+Intento 2 -> HTTP 401
+Intento 3 -> HTTP 401
+Intento 4 -> HTTP 401
+Intento 5 -> HTTP 401
+Intento 6 -> HTTP 429
+Intento 7 -> HTTP 429
+Intento 8 -> HTTP 429
+Intento 9 -> HTTP 429
+Intento 10 -> HTTP 429
+
+===== POST: CORS desde origen no permitido =====
+HTTP/1.1 403 Forbidden
+Content-Security-Policy: default-src 'self';img-src 'self' data:;style-src 'self' 'unsafe-inline';script-src 'self';connect-src 'self' https://ingweb3.agustinynatalia.site;frame-ancestors 'none';object-src 'none';base-uri 'self';font-src 'self' https: data:;form-action 'self';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Content-Type: application/json; charset=utf-8
+Content-Length: 83
+
+===== POST: CORS desde origen permitido (http://localhost:8080) =====
+HTTP/1.1 204 No Content
+Content-Security-Policy: default-src 'self';img-src 'self' data:;style-src 'self' 'unsafe-inline';script-src 'self';connect-src 'self' https://ingweb3.agustinynatalia.site;frame-ancestors 'none';object-src 'none';base-uri 'self';font-src 'self' https: data:;form-action 'self';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Access-Control-Allow-Origin: http://localhost:8080
+Vary: Origin, Access-Control-Request-Headers
+
+===== POST: Payload de 50KB rechazado =====
+HTTP/1.1 413 Payload Too Large
+Content-Security-Policy: default-src 'self';img-src 'self' data:;style-src 'self' 'unsafe-inline';script-src 'self';connect-src 'self' https://ingweb3.agustinynatalia.site;frame-ancestors 'none';object-src 'none';base-uri 'self';font-src 'self' https: data:;form-action 'self';script-src-attr 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Content-Type: application/json; charset=utf-8
