@@ -199,6 +199,43 @@ sast:
 
           <p>Los 3 hallazgos se analizan en el tema 3 — los tres son falsos positivos justificados.</p>
 
+          <h3>2.3 Ejecución real del pipeline en GitLab CI</h3>
+          <p>
+            Tras el push del commit <code>e70a0cc</code>, el pipeline
+            <strong>#2538935556</strong> ejecutó las 4 stages
+            (<code>validate → sast → build → deploy</code>) en
+            <strong>1 min 51 s</strong>. La stage <code>sast</code> generó el artifact
+            <code>semgrep-report.json</code> descargable por un mes.
+          </p>
+
+          <figure class="sec-cap">
+            <img src="analisis-seguridad/14_pipeline_gitlab.png" alt="Pipeline GitLab con las 4 stages en verde" />
+            <figcaption>Figura 4. Pipeline <code>#2538935556</code> en GitLab — las 4 stages pasaron (validate, sast, build, deploy). Tiempo total 1 m 51 s.</figcaption>
+          </figure>
+
+          <h3>2.4 Hallazgos generados por el job SAST</h3>
+          <p>
+            El reporte
+            <a href="./analisis-seguridad/semgrep-report-gitlab.json">semgrep-report-gitlab.json</a>
+            descargado del artifact contiene 4 hallazgos. Coinciden con la corrida local —
+            los 3 ya analizados más <code>detected-bcrypt-hash</code> que aparece sólo
+            cuando se activa el ruleset <code>p/secrets</code> (incluido en CI):
+          </p>
+          <table>
+            <thead><tr><th>Regla</th><th>Archivo</th><th>Severidad</th><th>Veredicto</th></tr></thead>
+            <tbody>
+              <tr><td><code>node_timing_attack</code></td><td>public/app/app.js:123</td><td><span class="tag amber">Warning</span></td><td><span class="pill fp">FP — V-14</span></td></tr>
+              <tr><td><code>node_timing_attack</code></td><td>public/app/app.js:124</td><td><span class="tag amber">Warning</span></td><td><span class="pill fp">FP — V-14</span></td></tr>
+              <tr><td><code>node_username</code></td><td>server/server.js:113</td><td><span class="tag amber">Warning</span></td><td><span class="pill fp">FP — V-15</span></td></tr>
+              <tr><td><code>detected-bcrypt-hash</code></td><td>server/server.js:216</td><td><span class="tag red">Error</span></td><td><span class="pill fp">FP — V-16</span></td></tr>
+            </tbody>
+          </table>
+          <p>
+            Los cuatro están documentados como falsos positivos en la matriz del Tema 3
+            (V-14, V-15, V-16). El job termina con <code>allow_failure: true</code>: los
+            hallazgos quedan visibles en el pipeline pero no bloquean el deploy.
+          </p>
+
           <!-- ─────────── TEMA 3 ─────────── -->
           <h2 id="t3">Tema 3 · Matriz de vulnerabilidades</h2>
 

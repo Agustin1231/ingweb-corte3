@@ -127,6 +127,23 @@ Análisis (ver tema 3) — los 3 son **falsos positivos**.
 
 **Salida completa:** [`sast/semgrep-console-output.txt`](sast/semgrep-console-output.txt) · **JSON crudo:** [`sast/semgrep-detallado.json`](sast/semgrep-detallado.json).
 
+### 2.4 Ejecución real del pipeline en GitLab CI
+
+Tras el push del commit `e70a0cc`, el pipeline **#2538935556** ejecutó las 4 stages (`validate → sast → build → deploy`) en **1 min 51 s**. La stage `sast` generó `semgrep-report.json` como artifact descargable por 1 mes.
+
+![Pipeline GitLab con 4 stages en verde](capturas/pipeline-gitlab-overview.png)
+
+El JSON descargado del artifact (`sast/semgrep-report-gitlab.json`) confirma los mismos hallazgos que la corrida local, más uno extra que aparece sólo con el ruleset `p/secrets`:
+
+| Regla | Archivo:línea | Severidad | Veredicto |
+|---|---|---|---|
+| `node_timing_attack` | `public/app/app.js:123` | Warning | FP — V-14 |
+| `node_timing_attack` | `public/app/app.js:124` | Warning | FP — V-14 |
+| `node_username` | `server/server.js:113` | Warning | FP — V-15 |
+| `detected-bcrypt-hash` | `server/server.js:216` | Error | FP — V-16 |
+
+Los 4 hallazgos están documentados en el Tema 3 como falsos positivos. `allow_failure: true` permite que el deploy continúe.
+
 ---
 
 ## Tema 3 · Visualización e interpretación de resultados

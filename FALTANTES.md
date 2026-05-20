@@ -67,8 +67,8 @@ Estos hallazgos están **identificados, evidenciados y priorizados** pero no se 
 ## 3. Lo que queda pendiente del trabajo
 
 ### 3.1 Acciones que sí o sí requieren al usuario (yo no puedo)
-- [ ] **Hacer `git push` para que el job SAST corra en GitLab CI**. Ya está commiteado y subido a GitHub; falta empujar a GitLab también si querés ver el pipeline ejecutándose con la nueva etapa.
-- [ ] **Capturar el pipeline ejecutado en GitLab** y guardarlo como evidencia adicional (la guía pide "capturas del proceso de ejecución"). Se puede embeber esa captura en `09-analisis-seguridad.html` luego.
+- [x] ~~**Push a GitLab + pipeline SAST**~~ — Hecho 2026-05-19. Pipeline `#2538935556` corrió en 1 m 51 s, 4 stages verdes, artifact descargado y embebido.
+- [x] ~~**Capturar el pipeline ejecutado en GitLab**~~ — Hecho. Captura en `docs/seguridad/capturas/pipeline-gitlab-overview.png` y embebida en §2.3 de `09-analisis-seguridad.html`.
 - [ ] **Redeploy del backend en Coolify** con el código hardened. Hoy el backend en `ingweb3.agustinynatalia.site` sigue siendo la versión **anterior** sin hardening — sólo el repo y el código local están hardened.
 
 ### 3.2 Mejoras opcionales para la próxima sesión
